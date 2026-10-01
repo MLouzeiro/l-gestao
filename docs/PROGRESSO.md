@@ -1,9 +1,63 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 30/09/2026. Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 01/10/2026. Estado salvo para retomar a sessão seguinte.
 
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`;
 conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
+
+## Sessão 01/10/2026 — Neon + Vercel no ar, Git e FIX do bypass RLS
+
+### Infra concluída
+- Projeto Neon `tiny-dew-43682715` (branch `br-round-cake-b6kdoftb`, PG 17):
+  migrations aplicadas; papel `estoque_app` criado.
+- Vercel linkada ao GitHub (`l-gestao.vercel.app`), env vars Production
+  (`DATABASE_URL`, `AUTH_SECRET`, `BETTER_AUTH_URL`) — deploy + login E2E
+  validados (Playwright, incl. 2FA).
+- GitHub: remote `origin` → `MLouzeiro/l-gestao`, branch `main`, HEAD `7661351`.
+- `.github/workflows/migrations.yml` criada (ARQUITETURA §13): push em `main`
+  com paths `drizzle/**` + `workflow_dispatch`; roda typecheck/test →
+  `db:migrate`. **PENDENTE**: secret `DATABASE_URL_ADMIN` (URL de conexão do
+  papel `neondb_owner` no Neon) precisa ser adicionado manualmente no GitHub
+  (Settings → Secrets and variables → Actions) — CLI `gh` não instalado.
+
+### 🔴 Fix de segurança aplicado — BYPASSRLS do `estoque_app`
+- **Problema**: `estoque_app` (papel da app em produção) tinha atributos
+  próprios `BYPASSRLS`/`CREATEROLE`/`CREATEDB`/`REPLICATION` → qualquer
+  conexão sem `SET app.current_tenant_id` lia TODAS as linhas (burlava a RLS).
+- **Bloqueio**: `ALTER ROLE` só é permitido a quem tem ADMIN OPTION no papel;
+  só o superuser `cloud_admin` (inacessível) tinha. A API Neon não expõe
+  alteração de atributos de papel.
+- **Solução aprovada e aplicada**: excluído o papel pela API Neon e recriado
+  por SQL como `neondb_owner` com o **mesmo nome e senha** → Vercel mantém a
+  mesma `DATABASE_URL` (zero mudança de env). Grants da migration `0005`
+  reaplicados (156 grants em tabelas de `public`).
+- **Estado novo**: `rolbypassrls`/`rolcreaterole`/`rolcreatedb`/
+  `rolreplication` = `false`; papel sem memberships (fora de `neon_superuser`);
+  `neondb_owner` é membro com ADMIN OPTION (administra o papel no futuro).
+- **Verificação**:
+  - node/pg como `estoque_app` **sem** tenant → 0 linhas (antes: 7);
+  - com tenant Empresa Demo → 4 linhas ✅;
+  - produção Playwright: login/2FA → painel → `/estoque/produtos` →
+    "4 de 4" produtos, **0 erros de console** ✅.
+
+### Correção de código
+- `scripts/seed.ts` (~linha 173): UPDATE de `tenant_settings` movido para
+  dentro de `withTenant()` — único acesso a dados fora do helper no audit
+  completo feito hoje (demais usos corretos).
+
+### Validação (01/10/2026)
+- `npm run typecheck` ✅ · `npm test` → 7 suítes / **124** testes ✅
+- Sem mudança de código de aplicação nesta etapa além do `seed.ts`.
+
+### ▶ PRÓXIMO PASSO (retomar aqui)
+1. Usuário adiciona o secret `DATABASE_URL_ADMIN` no GitHub; o primeiro push
+   que alterar `drizzle/**` dispara a Action de migrations.
+2. Commit/push das mudanças pendentes (`.gitignore`, `scripts/seed.ts`,
+   `.github/`, `docs/PROGRESSO.md`) — **aguardando confirmação do usuário**.
+3. ~~`npm run backup`~~ — **CONCLUÍDO** (01/10/2026, robocopy 0 falhas).
+4. Depois: melhorias da auditoria (security headers, rate limit, cron de
+   reservas, Sentry, docs README/DATABASE/SECURITY, dark mode) e
+   **Fase 11 — Financeiro (M4)**.
 
 ## Sessão 30/09/2026 (noite) — Auditoria, nome e Git
 

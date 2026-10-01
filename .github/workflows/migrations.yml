@@ -1,0 +1,47 @@
+name: Migrations
+
+# ARQUITETURA §13: migrations aplicadas por GitHub Action no merge para main
+# (nunca automático no boot). Pré-requisito: secret DATABASE_URL_ADMIN no repo.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "drizzle/**"
+      - ".github/workflows/migrations.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: migrations
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes unitários
+        run: npm test
+
+      - name: Aplicar migrations
+        env:
+          DATABASE_URL_ADMIN: ${{ secrets.DATABASE_URL_ADMIN }}
+        run: |
+          if [ -z "$DATABASE_URL_ADMIN" ]; then
+            echo "Secret DATABASE_URL_ADMIN não configurado no repositório." >&2
+            exit 1
+          fi
+          npm run db:migrate

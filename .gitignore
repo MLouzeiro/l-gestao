@@ -44,3 +44,5 @@ coverage/
 # Logs temporários de dev
 .tmp-dev.log
 *.log
+
+.vercel

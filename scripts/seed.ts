@@ -170,14 +170,16 @@ async function ensureTenant(data: DemoTenant, userId: string): Promise<string> {
   // Demo da Fase 8: farmácia com FEFO automático e bloqueio de venda
   // de lote vencido (configuração por empresa).
   if (data.slug === "farmacia-demo") {
-    await db
-      .update(tenantSettings)
-      .set({
-        controleFefo: true,
-        bloqueioVendaVencido: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(tenantSettings.tenantId, tenantId));
+    await withTenant(tenantId, async (tx) => {
+      await tx
+        .update(tenantSettings)
+        .set({
+          controleFefo: true,
+          bloqueioVendaVencido: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(tenantSettings.tenantId, tenantId));
+    });
     console.log("  └─ flags: controle_fefo + bloqueio_venda_vencido ativos");
   }
 
