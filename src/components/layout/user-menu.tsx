@@ -21,7 +21,7 @@ export function UserMenu({ name, email }: { name: string; email: string }) {
       <button
         type="button"
         onClick={onSignOut}
-        className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+        className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700"
       >
         Sair
       </button>

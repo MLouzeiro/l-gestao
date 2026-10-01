@@ -17,6 +17,7 @@ export type SaleFormProduct = {
   id: string;
   sku: string;
   name: string;
+  barcode: string | null;
   salePriceCents: number;
 };
 export type SaleFormSeller = { userId: string; name: string; email: string };
@@ -43,6 +44,7 @@ export async function loadSaleFormData(
       id: products.id,
       sku: products.sku,
       name: products.name,
+      barcode: products.barcode,
       salePrice: products.salePrice,
     })
     .from(products)
@@ -76,6 +78,7 @@ export async function loadSaleFormData(
       id: p.id,
       sku: p.sku,
       name: p.name,
+      barcode: p.barcode,
       salePriceCents: toCents(p.salePrice),
     })),
     clientes,

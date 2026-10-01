@@ -6,6 +6,7 @@ import { db } from "@/server/db/client";
 import { members, tenants } from "@/server/db/schema";
 import { resolvePermissions } from "@/server/rbac/permissions";
 import { AppSidebar } from "@/components/layout/sidebar";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 
 export default async function AppLayout({
@@ -46,19 +47,26 @@ export default async function AppLayout({
     <div className="flex min-h-screen bg-slate-100">
       <AppSidebar permissions={resolvePermissions(member.role)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
+        <header className="app-header sticky top-0 z-10 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
           <div className="flex min-w-0 items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
+            />
             <span className="truncate text-sm font-semibold text-slate-700">
               {tenant.name}
             </span>
             <a
               href="/empresas"
-              className="shrink-0 text-xs font-medium text-indigo-600 hover:text-indigo-800"
+              className="shrink-0 rounded-md border border-slate-300 px-2 py-0.5 text-xs font-medium text-indigo-600 hover:border-indigo-400 hover:text-indigo-700"
             >
               Trocar empresa
             </a>
           </div>
-          <UserMenu name={session.user.name} email={session.user.email} />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <UserMenu name={session.user.name} email={session.user.email} />
+          </div>
         </header>
         <main className="flex-1 p-6">{children}</main>
       </div>

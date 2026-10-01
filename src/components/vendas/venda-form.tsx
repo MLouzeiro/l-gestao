@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState, useActionState } from "react";
+import { useEffect, useMemo, useRef, useState, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { _salvarVenda, type VendaFormState } from "@/actions/vendas";
 import { formatBRL, toCents } from "@/lib/money";
+import { resolveProductByCode } from "@/lib/sale-scan";
 
-type Produto = { id: string; sku: string; name: string; salePriceCents: number };
+type Produto = {
+  id: string;
+  sku: string;
+  name: string;
+  barcode: string | null;
+  salePriceCents: number;
+};
 type Opcao = { id: string; name: string };
 type Vendedor = { userId: string; name: string; email: string };
 
@@ -107,6 +114,12 @@ export function VendaForm({
     })),
   );
   const [erroLocal, setErroLocal] = useState<string | null>(null);
+  const [codigoBarras, setCodigoBarras] = useState("");
+  const [scanMsg, setScanMsg] = useState<{
+    tipo: "ok" | "erro";
+    texto: string;
+  } | null>(null);
+  const scanRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state?.ok) {
@@ -229,6 +242,47 @@ export function VendaForm({
     });
   }
 
+  function onScanKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const resolucao = resolveProductByCode(produtos, codigoBarras);
+    setCodigoBarras("");
+    if (!resolucao) return;
+    if (resolucao.status === "not_found") {
+      setScanMsg({
+        tipo: "erro",
+        texto: `Produto não encontrado (código ${resolucao.code}).`,
+      });
+      scanRef.current?.focus();
+      return;
+    }
+    const produto = resolucao.product;
+    setItems((prev) => {
+      const existente = prev.find((i) => i.productId === produto.id);
+      if (existente) {
+        const qtd = Number.parseFloat(existente.quantity.replace(",", "."));
+        const atual = Number.isFinite(qtd) && qtd > 0 ? qtd : 0;
+        return prev.map((i) =>
+          i.productId === produto.id
+            ? { ...i, quantity: String(atual + 1) }
+            : i,
+        );
+      }
+      return [
+        ...prev,
+        {
+          key: prev.reduce((max, i) => Math.max(max, i.key), -1) + 1,
+          productId: produto.id,
+          quantity: "1",
+          price: centsToText(produto.salePriceCents),
+          discount: "",
+        },
+      ];
+    });
+    setScanMsg({ tipo: "ok", texto: `${produto.name} adicionado.` });
+    scanRef.current?.focus();
+  }
+
   if (produtos.length === 0 || depositos.length === 0) {
     return (
       <p className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">
@@ -309,7 +363,7 @@ export function VendaForm({
       </section>
 
       <section className="rounded-lg border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
           <h2 className="text-sm font-semibold text-slate-800">Itens</h2>
           <button
             type="button"
@@ -318,6 +372,34 @@ export function VendaForm({
           >
             + Adicionar item
           </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+          <label
+            htmlFor="scan-codigo-barras"
+            className="text-xs font-semibold text-slate-600"
+          >
+            Código de barras
+          </label>
+          <input
+            id="scan-codigo-barras"
+            ref={scanRef}
+            value={codigoBarras}
+            onChange={(e) => setCodigoBarras(e.target.value)}
+            onKeyDown={onScanKeyDown}
+            autoFocus
+            placeholder="Leia com o leitor USB e pressione Enter"
+            className="w-72 rounded-md border border-slate-300 px-2 py-1.5 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          />
+          {scanMsg && (
+            <span
+              className={`text-xs font-medium ${
+                scanMsg.tipo === "ok" ? "text-emerald-600" : "text-red-600"
+              }`}
+            >
+              {scanMsg.texto}
+            </span>
+          )}
         </div>
 
         {items.length === 0 ? (

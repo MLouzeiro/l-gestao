@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { eq } from "drizzle-orm";
 import { formatBRL } from "@/lib/money";
 import {
   formatSaleNumber,
 } from "@/server/modules/vendas/sales-rules";
 import { getSaleDetail } from "@/server/modules/vendas/sales.service";
+import { tenants } from "@/server/db/schema";
 import { resolvePermissions } from "@/server/rbac/permissions";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
 import { StatusBadge } from "@/components/vendas/status-badge";
 import { VendaAcoes } from "@/components/vendas/venda-acoes";
+import { CupomNaoFiscal } from "@/components/vendas/cupom";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -26,10 +29,24 @@ export default async function VendaDetalhePage({
   const canManage = permissoes.includes("sales.manage");
   const canBill = permissoes.includes("sales.billing");
 
-  const venda = await withTenant(tenantId, (tx) =>
-    getSaleDetail(tx, tenantId, id),
-  );
-  if (!venda) notFound();
+  const dados = await withTenant(tenantId, async (tx) => {
+    const venda = await getSaleDetail(tx, tenantId, id);
+    if (!venda) return null;
+    const [empresa] = await tx
+      .select({
+        name: tenants.name,
+        tradingName: tenants.tradingName,
+        legalName: tenants.legalName,
+        document: tenants.document,
+      })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+    if (!empresa) return null;
+    return { venda, empresa };
+  });
+  if (!dados) notFound();
+  const { venda, empresa } = dados;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -162,12 +179,17 @@ export default async function VendaDetalhePage({
           </div>
         </section>
 
-        <VendaAcoes
-          saleId={venda.id}
-          status={venda.status}
-          canManage={canManage}
-          canBill={canBill}
-        />
+        <div className="flex flex-col items-start gap-2">
+          <VendaAcoes
+            saleId={venda.id}
+            status={venda.status}
+            canManage={canManage}
+            canBill={canBill}
+          />
+          {venda.status === "BILLED" && (
+            <CupomNaoFiscal venda={venda} empresa={empresa} />
+          )}
+        </div>
       </div>
     </div>
   );

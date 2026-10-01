@@ -169,6 +169,7 @@ Migrations geradas (`drizzle-kit generate`) e aplicadas por GitHub Action no mer
 ## 14. Decisões aprovadas
 1. ORM: **Drizzle** · 2. Auth: **Better Auth** · 3. Banco: **Neon** · 4. Compras: **nota de entrada simples na v1** · 5. Empresa: **seleção pós-login (subdomínio futuro)** · 6. Testes: **Jest** ·
 Padrões: BRL único; kits baixam componentes; margem = % sobre custo; sem Redis na v1; arquivos em Vercel Blob; sem cálculo fiscal na v1; e-mails via Resend; Sentry na v1; expiração de reserva híbrida; alertas por painel na v1; export CSV na v1; numeração `VENDA-000123`; LGPD sem apagar histórico; unidades globais.
+Frontend: **tema dark por padrão** (`<html class="dark">` + toggle claro/escuro persistido em `lg-theme`; remap das utilidades Tailwind no bloco `.dark` de `globals.css` — novas telas usam as mesmas classes, nunca `dark:` espalhado); **cupom térmico não fiscal (80mm) na venda faturada — NFC-e é fase futura**; leitor de código de barras USB no fluxo de vendas (câmera/QR fica para depois).
 
 ---
 

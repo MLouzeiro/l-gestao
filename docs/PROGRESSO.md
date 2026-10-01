@@ -192,3 +192,54 @@ passando, build OK e smoke test manual da UI.
 - Tabela de numeração: `counters` (`src/server/db/schema/financeiro.ts:134`)
 - Fronteiras do escopo: não existe ainda `src/server/audit/` (Fase 14),
   devoluções, financeiro.
+
+---
+
+## Sessão 01/10/2026 (parte 2) — Código de barras, cupom térmico e dark mode
+
+### Código de barras USB (leitor HID) em Vendas
+- `src/lib/sale-scan.ts` — `resolveProductByCode()`: resolve produto por
+  barcode (prioridade) ou SKU; TDD em `tests/unit/sale-scan.test.ts` (7 testes).
+- `venda-form.tsx`: campo `#scan-codigo-barras` (autoFocus; Enter adiciona o
+  item — incrementa a qtd se já estiver no carrinho); mensagem de erro em
+  pt-BR para código desconhecido; `SaleFormProduct` agora inclui `barcode`
+  (`form-data.ts`).
+- E2E Playwright validado (add/incrementa/SKU/desconhecido/espaços, foco
+  retido, 0 erros de console). Câmera/QR (`html5-qrcode`) = futuro.
+
+### Cupom térmico não fiscal (80mm)
+- `src/components/vendas/cupom.tsx` — `CupomNaoFiscal` + botão "Imprimir
+  cupom (80mm)" (`window.print()`), exibido **somente** em venda `BILLED`
+  (`vendas/[id]/page.tsx` busca também `tenants` para razão social/CNPJ).
+- Print CSS em `globals.css` (`.cupom-impressao` off-screen; `@media print`
+  esconde a app inteira; `@page { size: 80mm auto; margin: 0 }`) — validado
+  com `emulateMedia('print')`, inclusive no tema dark.
+- **NFC-e é fase futura** (fora da v1): o cupom atual é não-fiscal, sem
+  assinatura/chave/SEFAZ.
+
+### Tema visual — dark por padrão (referência: app antigo `l-estoque`)
+- Padrão: `<html class="dark">` (estático) + script anti-flash lê
+  `lg-theme` (localStorage); `ThemeToggle` (`components/layout/theme-toggle.tsx`)
+  no header alterna e persiste; sem preferência salva = **dark**.
+- **Remap em `globals.css`**: bloco `.dark` **fora de @layer** re-mapeia as
+  utilidades usadas pelo app (`bg-white`, `slate-*`, chips tintados,
+  foco/hover). **Regra para novas telas**: usar as mesmas classes
+  (`bg-white`, `text-slate-800`, `border-slate-300`, `hover:bg-slate-50`,
+  `focus:ring-indigo-100`…) — o remap cuida do dark. Se um hover/focus novo
+  não estiver mapeado, adicionar a regra equivalente em `globals.css`
+  (ex.: `.dark .hover\:text-indigo-700:hover`) — nunca espalhar `dark:`
+  por componentes (a base `.dark` unlayered vence os utilitários do
+  Tailwind; por isso foco/hover precisam de regra explícita).
+- Efeitos: wrapper com glows radiais; sidebar `.sidebar-rail` /
+  `.brand-mark` / `.brand-title` / nav `.nav-active`; header `.app-header`
+  (translúcido + blur); sombra de profundidade só em superfícies
+  (`bg-white` sem `input/select/textarea/button`); glow no hover de
+  `bg-indigo-600`; inputs com borda + anel indigo no foco
+  (`.dark input:focus` vence `focus:border/ring` do Tailwind).
+- Referências reaproveitadas do projeto antigo `l-estoque`
+  (`C:\Users\Louzeiro\Documents\Louzeiro\Projeto\l-estoque`): fluxo PDV
+  (busca + Enter), tema dark como padrão, `QRScannerModal` (câmera — futuro),
+  etiquetas de lote (futuro).
+- Validação E2E: painel/estoque/vendas/detalhe/empresas/login em dark,
+  toggle claro⇄escuro (persistência), foco/hover computados, print do cupom,
+  0 erros de console; `typecheck` ✅ · **131 testes** ✅.

@@ -35,12 +35,14 @@ export function AppSidebar({
   const items = buildItems(permissions);
 
   return (
-    <aside className="hidden w-56 shrink-0 border-r border-slate-200 bg-white md:block">
+    <aside className="sidebar-rail hidden w-56 shrink-0 border-r border-slate-200 bg-white md:block">
       <div className="flex h-14 items-center border-b border-slate-200 px-4">
-        <span className="flex h-7 w-7 items-center justify-center rounded bg-indigo-600 text-sm font-bold text-white">
+        <span className="brand-mark flex h-7 w-7 items-center justify-center rounded-md bg-indigo-600 text-sm font-bold text-white">
           L
         </span>
-        <span className="ml-2 text-sm font-semibold text-slate-900">L Gestão</span>
+        <span className="brand-title ml-2 text-sm font-semibold text-slate-900">
+          L Gestão
+        </span>
       </div>
       <nav className="space-y-1 p-3">
         {items.map((item) =>
@@ -50,7 +52,7 @@ export function AppSidebar({
               href={item.href}
               className={`block rounded-md px-3 py-2 text-sm font-medium ${
                 pathname.startsWith(item.href)
-                  ? "bg-indigo-50 text-indigo-700"
+                  ? "nav-active bg-indigo-50 text-indigo-700"
                   : "text-slate-600 hover:bg-slate-50"
               }`}
             >
