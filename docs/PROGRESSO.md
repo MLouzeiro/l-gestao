@@ -47,9 +47,9 @@ conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
 - Backup `npm run backup` OK (30/09 23:31).
 
 ### ▶ PRÓXIMO PASSO (retomar aqui)
-1. **Usuário** cria repo **privado** `l-gestao` em github.com/new (login
-   Mlouzeiro), **sem** README, e cola a URL (`https://github.com/Mlouzeiro/
-   l-gestao.git`) aqui → nós: `git remote add origin <url>` + push.
+1. ~~Usuário cria repo privado `l-gestao` no GitHub~~ — **CONCLUÍDO**:
+   `https://github.com/MLouzeiro/l-gestao.git` · remote `origin` · branch
+   `main` (renomeada de `master`) · push OK = `8402c40`.
 2. Em seguida (após autorização): projeto **Neon** novo + migration inicial,
    conectar **Vercel** (preview por PR), GitHub Action de migrations
    (ARQUITETURA §13).
