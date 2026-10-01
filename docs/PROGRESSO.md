@@ -5,6 +5,59 @@
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`;
 conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
 
+## Sessão 30/09/2026 (noite) — Auditoria, nome e Git
+
+### Auditoria inicial do projeto (read-only, entregue)
+- Relatório com 20 seções + classificação 🔴🟠🟡🔵🟢.
+- Achados principais: 🔴 **sem Git/CI/deploy/Neon ativo** (tudo em dev local +
+  backup Drive); 🟠 audit trail ausente (Fase 14), signup aberto sem rate
+  limit, cron de liberação de reservas inexistente, Sentry ausente;
+  🟡 sem dark mode, sem README/DATABASE/SECURITY, sem security headers,
+  sem testes de componente/E2E, 4 vulnerabilidades moderadas só em devDep.
+- Confirmações do usuário: projeto é **novo do zero** (não está em produção);
+  aprovou executar os passos 2–3 do plano; cadastro de usuário: **aberto E por
+  convite** (os dois).
+
+### Correções aplicadas (aprovadas, pós-auditoria)
+1. `src/actions/equipe.ts` — `console.log` do link de convite agora só roda
+   **fora de produção** (em produção vazaría o token do convite nos logs).
+2. `.gitignore` — cobre `*.log` e `.tmp-dev.log`.
+3. Removido `jest.integration.config.ts` (arquivo morto; o script usa
+   `jest.config.integration.ts`).
+
+### Nome do sistema — DECIDIDO
+- **L Gestão** · slug `l-gestao` · `l-gestao.vercel.app` **livre** (checado
+  via HTTP 404 DEPLOYMENT_NOT_FOUND; DNS wildcard da Vercel não serve).
+- Critérios da entrevista: pt-BR, abrangente, ≤8 letras, sem "estoque",
+  falável; L = **L**ouzeiro + **gestão**. Descartados por ocupados:
+  lgestao, lagestao, gestao, negocia, varejo, caixa etc.
+- Aplicado em: `package.json` (name `l-gestao`), `src/app/layout.tsx`
+  (title), tela de login, sidebar (logo "L"), este documento.
+
+### Decisões de infra
+- Banco de produção: **Neon** (plano aprovado — branching grátis por PR).
+  Usuário tem conta Supabase também, mas branching é pago lá → descartado.
+- Identidade Git (repo local): `Louzeiro <marcio.louzeiro05@gmail.com>`.
+- GitHub do usuário: `Mlouzeiro` (`gh` CLI não instalado).
+
+### Git — iniciado
+- `git init` + primeiro commit **`61a234e`** (176 arquivos; verificado que
+  `.env`, `.tmp-dev.log`, rag.db, node_modules e .next **não** entram).
+- Validação antes do commit: typecheck ✅ · 124 unit ✅ · build ✅.
+- Backup `npm run backup` OK (30/09 23:31).
+
+### ▶ PRÓXIMO PASSO (retomar aqui)
+1. **Usuário** cria repo **privado** `l-gestao` em github.com/new (login
+   Mlouzeiro), **sem** README, e cola a URL (`https://github.com/Mlouzeiro/
+   l-gestao.git`) aqui → nós: `git remote add origin <url>` + push.
+2. Em seguida (após autorização): projeto **Neon** novo + migration inicial,
+   conectar **Vercel** (preview por PR), GitHub Action de migrations
+   (ARQUITETURA §13).
+3. Melhorias da auditoria pendentes: security headers, rate limit
+   signup/login (signup fica ABERTO + convite), cron de expiração de
+   reservas, Sentry/logger, docs README/DATABASE/SECURITY, dark mode.
+4. Aí sim: Fase 11 — Financeiro (M4).
+
 ## Onde paramos
 
 **Fase 10 — Vendas (M3) — CONCLUÍDA e verificada.**
