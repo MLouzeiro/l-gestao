@@ -1,0 +1,46 @@
+# Dependências
+node_modules/
+.pnp/
+.pnp.js
+
+# Build
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Segredos
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# Banco local
+*.db
+*.db-journal
+*.sqlite
+
+# Testes
+coverage/
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# RAG do harness (regenerável)
+.claude/rag.db
+.claude/rag.db-journal
+
+# Playwright MCP
+.playwright-mcp/
+
+# Logs temporários de dev
+.tmp-dev.log
+*.log

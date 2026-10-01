@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": true
+    }
+  },
+  "instructions": [
+    ".claude/rules/seguranca.md",
+    ".claude/rules/convencoes-gerais.md",
+    ".claude/rules/backend/README.md",
+    ".claude/rules/frontend/README.md",
+    ".claude/rules/tests/README.md"
+  ],
+  "command": {
+    "review": {
+      "template": "Revise o código contra SPEC.md e PLAN.md, classificando cada problema como BLOQUEANTE, IMPORTANTE ou SUGESTÃO.\n\nEscopo: $ARGUMENTS",
+      "description": "Revisa o código contra SPEC.md e PLAN.md, classifica em BLOQUEANTE, IMPORTANTE, SUGESTÃO",
+      "agent": "code-reviewer"
+    },
+    "implementar": {
+      "template": "Implemente a task do PLAN.md conforme o ID fornecido ou, se não houver ID, crie um plano detalhado a partir da descrição.\n\nTask: $ARGUMENTS",
+      "description": "Implementa uma task do PLAN.md por ID ou cria plano a partir de descrição livre"
+    },
+    "entrega": {
+      "template": "Verifique os checkboxes do plano, gere um relatório de próximos passos pendentes e confirme se o projeto está pronto para entrega.\n\nContexto: $ARGUMENTS",
+      "description": "Verifica checkboxes, gera relatório de próximos passos e confirma readiness"
+    },
+    "analisar-bug": {
+      "template": "Analise a descrição do erro fornecida, investigue a causa raiz no código-fonte e produza um relatório detalhado com evidências.\n\nErro: $ARGUMENTS",
+      "description": "Analisa descrição de erro, investiga causa raiz no código e produz relatório"
+    },
+    "corrigir-bug": {
+      "template": "Receba o relatório de análise de bug e implemente a correção seguindo TDD e as boas práticas definidas no projeto.\n\nRelatório: $ARGUMENTS",
+      "description": "Recebe relatório de análise e orquestra correção seguindo TDD e boas práticas"
+    },
+    "melhoria": {
+      "template": ".claude/commands/melhoria.md",
+      "description": "Planeja e orquestra melhoria: clarifica requisitos, monta plano em sprints/fases/tasks e delega via /implementar"
+    }
+  }
+}

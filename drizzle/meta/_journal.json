@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790403426874,
+      "tag": "0000_tricky_angel",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790403431104,
+      "tag": "0001_rls_tenant_isolation",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790436816126,
+      "tag": "0002_foamy_argent",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790436898957,
+      "tag": "0003_mighty_marvel_apes",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790468117805,
+      "tag": "0004_early_vision",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790469600000,
+      "tag": "0005_grants_app_role",
+      "breakpoints": true
+    }
+  ]
+}
