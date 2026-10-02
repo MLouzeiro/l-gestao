@@ -43,6 +43,13 @@
       "when": 1790469600000,
       "tag": "0005_grants_app_role",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790906007633,
+      "tag": "0006_deep_wind_dancer",
+      "breakpoints": true
     }
   ]
 }

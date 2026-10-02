@@ -12,7 +12,7 @@ import {
 import { requirePermission } from "@/server/rbac/require-permission";
 import { resolvePermissions } from "@/server/rbac/permissions";
 import { withTenant } from "@/server/tenant/with-tenant";
-import { formatBRL } from "@/lib/money";
+import { formatBRL, toCents } from "@/lib/money";
 import { MovimentacaoForm } from "@/components/estoque/movimentacao-form";
 import { ProdutoForm } from "@/components/estoque/produto-form";
 
@@ -323,7 +323,7 @@ export default async function EstoquePage() {
                         {Number(m.quantity).toFixed(3).replace(/\.?0+$/, "")}
                       </td>
                       <td className="px-4 py-2 text-right text-slate-600">
-                        {formatBRL(Number(m.unitCost))}
+                        {formatBRL(toCents(m.unitCost))}
                       </td>
                       <td className="px-4 py-2 text-slate-600">
                         {m.warehouseName}

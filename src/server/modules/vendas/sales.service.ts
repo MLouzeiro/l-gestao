@@ -14,8 +14,9 @@ import {
   warehouses,
 } from "@/server/db/schema";
 import type { TenantTx } from "@/server/tenant/with-tenant";
-import { fromCents } from "@/lib/money";
+import { fromCents, toCents } from "@/lib/money";
 import { nextCounter } from "@/server/db/counter";
+import { createReceivables } from "@/server/modules/financeiro/financial.service";
 import {
   applyMovement,
   MovementError,
@@ -59,11 +60,23 @@ export type SaleInput = {
   customerId?: string | null;
   sellerId?: string | null;
   notes?: string | null;
+  installments?: number;
   items: readonly SaleItemInput[];
   orderDiscountCents?: number;
 };
 
 const COUNTER_KEY = "sale";
+
+export const SALE_INSTALLMENTS_MAX = 12;
+
+function assertInstallments(count: number): number {
+  if (!Number.isInteger(count) || count < 1 || count > SALE_INSTALLMENTS_MAX) {
+    throw new SaleError(
+      `Número de parcelas deve estar entre 1 e ${SALE_INSTALLMENTS_MAX}.`,
+    );
+  }
+  return count;
+}
 
 type Settings = {
   maxDescontoVendedorPct: number;
@@ -278,6 +291,7 @@ export async function createSale(
   }
 
   const { totals } = await prepareTotals(tx, ctx, input);
+  const installments = assertInstallments(input.installments ?? 1);
   const number = await nextCounter(tx, ctx.tenantId, COUNTER_KEY);
 
   const [order] = await tx
@@ -293,6 +307,7 @@ export async function createSale(
       itemDiscount: centsDb(totals.itemDiscountCents),
       orderDiscount: centsDb(totals.orderDiscountCents),
       total: centsDb(totals.totalCents),
+      installments,
       notes: input.notes?.trim() || null,
     })
     .returning({ id: salesOrders.id });
@@ -335,6 +350,7 @@ export async function updateSale(
   }
 
   const { totals } = await prepareTotals(tx, ctx, input);
+  const installments = assertInstallments(input.installments ?? 1);
 
   await tx
     .delete(salesOrderItems)
@@ -356,6 +372,7 @@ export async function updateSale(
       itemDiscount: centsDb(totals.itemDiscountCents),
       orderDiscount: centsDb(totals.orderDiscountCents),
       total: centsDb(totals.totalCents),
+      installments,
       notes: input.notes?.trim() || null,
       updatedAt: new Date(),
     })
@@ -465,8 +482,8 @@ export async function cancelSale(
 
 /**
  * CONFIRMED → BILLED: consome a reserva (libera o `reserved`), baixa o estoque
- * via applyMovement (FEFO/bloqueio de vencido já resolvem lá) e marca faturada.
- * Fase 11 gera as parcelas a receber.
+ * via applyMovement (FEFO/bloqueio de vencido já resolvem lá), gera as
+ * parcelas a receber (Fase 11) e marca faturada — tudo na mesma transação.
  */
 export async function billSale(
   tx: TenantTx,
@@ -540,12 +557,26 @@ export async function billSale(
     movements += 1;
   }
 
+  const billedAt = new Date();
   await tx
     .update(salesOrders)
-    .set({ status: "BILLED", billedAt: new Date(), updatedAt: new Date() })
+    .set({ status: "BILLED", billedAt, updatedAt: new Date() })
     .where(
       and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, saleId)),
     );
+
+  // parcelas a receber: 1º vencimento no próprio faturamento, demais +1 mês
+  await createReceivables(
+    tx,
+    { tenantId: ctx.tenantId, userId: ctx.userId },
+    {
+      sourceId: saleId,
+      description: `VENDA-${String(order.number).padStart(6, "0")}`,
+      totalCents: toCents(order.total),
+      installments: order.installments,
+      baseDate: billedAt,
+    },
+  );
 
   return { saleId, movements };
 }
@@ -672,6 +703,7 @@ export type SaleDetail = {
   itemDiscountCents: number;
   orderDiscountCents: number;
   totalCents: number;
+  installments: number;
   notes: string | null;
   createdAt: Date;
   confirmedAt: Date | null;
@@ -700,6 +732,7 @@ export async function getSaleDetail(
       itemDiscount: salesOrders.itemDiscount,
       orderDiscount: salesOrders.orderDiscount,
       total: salesOrders.total,
+      installments: salesOrders.installments,
       notes: salesOrders.notes,
       createdAt: salesOrders.createdAt,
       confirmedAt: salesOrders.confirmedAt,
@@ -777,6 +810,7 @@ export async function getSaleDetail(
     itemDiscountCents: cents(order.itemDiscount),
     orderDiscountCents: cents(order.orderDiscount),
     totalCents: cents(order.total),
+    installments: order.installments,
     notes: order.notes,
     createdAt: order.createdAt,
     confirmedAt: order.confirmedAt,
@@ -808,6 +842,8 @@ async function lockOrder(
   warehouseId: string;
   number: number;
   sellerId: string | null;
+  total: string;
+  installments: number;
 }> {
   const [order] = await tx
     .select({
@@ -816,6 +852,8 @@ async function lockOrder(
       warehouseId: salesOrders.warehouseId,
       number: salesOrders.number,
       sellerId: salesOrders.sellerId,
+      total: salesOrders.total,
+      installments: salesOrders.installments,
     })
     .from(salesOrders)
     .where(and(eq(salesOrders.tenantId, tenantId), eq(salesOrders.id, saleId)))

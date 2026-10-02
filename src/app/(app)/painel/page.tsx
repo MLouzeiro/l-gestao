@@ -3,8 +3,9 @@ import { auth } from "@/server/auth";
 
 const modules = [
   { name: "Estoque", desc: "Produtos, lotes, entradas e saídas", status: "Concluído" },
-  { name: "Vendas", desc: "Pedidos, faturamento e devoluções", status: "Fase 10" },
-  { name: "Financeiro", desc: "Contas a receber e a pagar", status: "Fase 11" },
+  { name: "Vendas", desc: "Pedidos, faturamento e devoluções", status: "Concluído" },
+  { name: "Compras", desc: "Notas de entrada e contas a pagar", status: "Concluído" },
+  { name: "Financeiro", desc: "Contas a receber e a pagar", status: "Concluído" },
   { name: "Relatórios", desc: "Indicadores e exportação CSV", status: "Fase 12" },
   { name: "Administração", desc: "Equipe, papéis, convites e 2FA", status: "Concluído" },
   { name: "Auditoria", desc: "Histórico de alterações sensíveis", status: "Fase 13" },
@@ -20,6 +21,8 @@ const roadmap = [
   { phase: "Fase 7", label: "Produtos: catálogo, categorias, marcas e kits", done: true },
   { phase: "Fase 8", label: "Lotes: validade, FEFO e bloqueio de vencido", done: true },
   { phase: "Fase 9", label: "Inventário: contagem e ajuste de saldo", done: true },
+  { phase: "Fase 10", label: "Vendas: pedidos, faturamento e devoluções", done: true },
+  { phase: "Fase 11", label: "Financeiro: recebimentos, compras e vencidas", done: true },
 ];
 
 export default async function PainelPage() {

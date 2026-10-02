@@ -36,6 +36,7 @@ export const purchaseEntries = pgTable(
     total: numeric("total", { precision: 14, scale: 2 })
       .notNull()
       .default("0"),
+    installments: integer("installments").notNull().default(1),
     notes: text("notes"),
     userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
     confirmedAt: timestamp("confirmed_at", {

@@ -31,6 +31,7 @@ export type VendaInicial = {
   customerId: string | null;
   sellerId: string | null;
   notes: string | null;
+  installments: number;
   orderDiscountCents: number;
   items: {
     productId: string;
@@ -101,6 +102,7 @@ export function VendaForm({
   const [customerId, setCustomerId] = useState(initial?.customerId ?? "");
   const [sellerId, setSellerId] = useState(initial?.sellerId ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [installments, setInstallments] = useState(initial?.installments ?? 1);
   const [orderDiscount, setOrderDiscount] = useState(
     initial ? centsToText(initial.orderDiscountCents) : "",
   );
@@ -173,6 +175,7 @@ export function VendaForm({
         customerId: customerId || null,
         sellerId: sellerId || null,
         notes: notes.trim() || undefined,
+        installments,
         orderDiscountCents: canDiscount
           ? parseCents(orderDiscount) ?? 0
           : 0,
@@ -191,6 +194,7 @@ export function VendaForm({
       customerId,
       sellerId,
       notes,
+      installments,
       canDiscount,
       orderDiscount,
       linhas,
@@ -299,7 +303,7 @@ export function VendaForm({
 
       <section className="rounded-lg border border-slate-200 bg-white p-4">
         <h2 className="text-sm font-semibold text-slate-800">Dados da venda</h2>
-        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-4">
+        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-5">
           <label className="text-xs font-medium text-slate-500">
             Depósito *
             <select
@@ -344,6 +348,21 @@ export function VendaForm({
               {vendedores.map((v) => (
                 <option key={v.userId} value={v.userId}>
                   {v.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="text-xs font-medium text-slate-500">
+            Parcelas
+            <select
+              value={installments}
+              onChange={(e) => setInstallments(Number(e.target.value))}
+              className="mt-1 w-full rounded-md border border-slate-300 px-2 py-2 text-sm text-slate-800"
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {n === 1 ? "1x à vista" : `${n}x`}
                 </option>
               ))}
             </select>

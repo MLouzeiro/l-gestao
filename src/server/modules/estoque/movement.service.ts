@@ -325,7 +325,7 @@ export async function applyMovement(
   }
 
   // ---- livro razão (imutável) ----
-  const totalCents = Math.round((unitCostCents * input.quantity) / 1000);
+  const totalCents = Math.round(unitCostCents * input.quantity);
   const [movement] = await tx
     .insert(stockMovements)
     .values({

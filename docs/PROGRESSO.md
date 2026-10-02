@@ -243,3 +243,104 @@ passando, build OK e smoke test manual da UI.
 - Validação E2E: painel/estoque/vendas/detalhe/empresas/login em dark,
   toggle claro⇄escuro (persistência), foco/hover computados, print do cupom,
   0 erros de console; `typecheck` ✅ · **131 testes** ✅.
+
+---
+
+## Sessão 02/10/2026 — Fase 11: Financeiro (M4) CONCLUÍDA
+
+**Fase 11 — CONCLUÍDA e verificada** (escopo aprovado "tudo de uma vez":
+receber + compras + cron + campo de parcelas na venda). Fases 1–11 prontas.
+
+### O que a Fase 11 entregou
+- **F11.1** Migration `drizzle/0006_deep_wind_dancer.sql`: coluna
+  `installments` em `sales_orders` e `purchase_entries` (1–12; Zod +
+  `assertInstallments` + select no form de venda).
+- **F11.2–F11.4 (núcleo)** `src/server/modules/financeiro/`:
+  - `financial-rules.ts` — status (`OPEN > PARCIAL` … prioridade
+    `CANCELLED > PAID > OVERDUE > PARTIAL > OPEN`), `dueDateFor`,
+    `splitInstallments` (soma bate no total), datas de coluna `date`
+    sempre dia-UTC (`asUtcDay`); + `tests/unit/financial-rules.test.ts`
+    (18 testes).
+  - `financial.service.ts` — `createAccounts`/`createReceivables`/
+    `createPayables`, `registerPayment` (lock `FOR UPDATE`,
+    `paid_amount ≤ amount`, juros/desconto), `markAccountsOverdue`,
+    `cancelAccountsForSource`, `listAccounts` (com `partyName`),
+    `getAccountDetail`, `listTenantIdsForCron`.
+  - `billSale` (vendas) passou a chamar `createReceivables` (descrição
+    `VENDA-000001`).
+- **F11.5 (UI receber/pagar)** `src/lib/dates.ts` (`formatDateOnly` UTC,
+  `formatDateTime`, `todayInputValue`, `dateOnlyInput`),
+  `src/actions/financeiro.ts` (`_registrarBaixa`, Zod, `FinancialError`
+  → `{ error }` pt-BR), `src/components/financeiro/{status-badge,
+  baixa-form}.tsx`, páginas `/financeiro` (abas receber/pagar, filtros,
+  badges, paginação) e `/financeiro/[id]` (baixa parcial → erro →
+  quitação); sidebar do Financeiro liberado com `finance.view`.
+- **F11.6 (módulo Compras)** TDD:
+  - `purchase-rules.ts` + `tests/unit/purchase-rules.test.ts` (**25
+    testes**): `assertPurchaseTransition`, validação de itens (500 máx,
+    produto+lote duplicado, validade), `calcPurchaseTotalCents`,
+    `formatPurchaseNumber` (`COMPRA-000001`).
+  - `purchase.service.ts`: `createPurchase`/`updatePurchase`/
+    `deletePurchase` (só OPEN), `confirmPurchase` (applyMovement
+    `ENTRADA_COMPRA` + `createPayables` na mesma transação),
+    `cancelPurchase`, `listPurchases` (busca por número formatado OU
+    fornecedor + `itemCount`), `getPurchaseDetail`, `PurchaseError`.
+  - `form-data.ts` (`loadPurchaseFormData`), `src/actions/compras.ts`
+    (4 actions, `purchases.manage`), UI `/compras` (+ `/nova`, `/[id]`,
+    `/[id]/editar`) e `src/components/compras/{status-badge,
+    compra-form,compra-acoes}.tsx`; item "Compras" na sidebar
+    (`purchases.view`).
+  - `tests/integration/purchase.test.ts` (**9 testes**): estoque+payable
+    na confirmação, 3 parcelas somam o total, lote obrigatório, imutável
+    pós-CONFIRMED, cancel, entrada manual sem payable, RLS A≠B, RBAC.
+- **F11.7 (cron OVERDUE)** `src/app/api/cron/overdue/route.ts` (Bearer
+  `CRON_SECRET`; sem segredo só fora de produção; listagem de tenants é
+  cross-tenant de propósito — `tenants` sem RLS — e cada update roda em
+  `withTenant`) + `vercel.json` (`0 3 * * *` = 00h BRT) + `CRON_SECRET`
+  documentado em `.env.example`.
+- **F11.8** `typecheck` ✅ · `npm run test:all` → **174 unit** (10 suítes)
+  + **68 integração** (7 suítes) ✅ · `build` ✅ (rotas `/compras*`,
+  `/api/cron/overdue`).
+- **F11.9** Docs (este arquivo + ARQUITETURA §10), painel (módulos
+  Compras/Financeiro "Concluído", roadmap Fase 11 ✓).
+
+### Bugs corrigidos no caminho (Fase 11)
+1. `movement.service.ts` — `totalCents` com `/1000` errado → o livro
+   gravava total ~1000x menor (10@R$10 → R$0,01). Corrigido; regressão
+   em `purchase.test.ts` (`totalCost` = "100.00").
+2. `estoque/page.tsx` — `formatBRL(Number(m.unitCost))` tratava reais
+   como centavos (R$12,50 aparecia R$0,13). Corrigido para
+   `formatBRL(toCents(m.unitCost))`.
+
+### Validação E2E (Playwright, dev :3001)
+- Fornecedor criado em `/estoque/produtos` → `/compras/nova` (prévia
+  R$ 125,00 · 3x) → `COMPRA-000001` → **Confirmar** → estoque
+  **+10 @ R$12,50** (saldo 50, movimento "Compra") → Financeiro a pagar:
+  3 parcelas **02/10, 02/11, 02/12** (41,66/41,67/41,67 = R$125) →
+  **baixa total → Quitada**.
+- Editar nota OPEN (prefill qty/custo/data) → total recalculado
+  (R$30,00) → **Cancelar** → badge "Cancelada"; lista com badges/filtros.
+- Cron: `GET /api/cron/overdue` → 200 `{"ok":true,"tenants":5,"updated":0}`
+  (vence hoje não é vencida).
+
+### Decisões de modelo (não reabrir)
+- Compra: `OPEN → CONFIRMED` e `OPEN → CANCELLED` apenas; CONFIRMED é
+  final na v1 (cancelar pós-confirmação = estorno, v2).
+- Estoque "Entrada — Compra" (movimentação manual) **não** gera conta a
+  pagar — só `purchase_entries` CONFIRMED gera payable (documentado em
+  ARQUITETURA §10).
+- Juros/desconto da baixa: informativos na v1 (o valor pago manda).
+- OVERDUE vence PARTIAL (badge "Vencida" mesmo com baixa parcial).
+- Datas de coluna `date`: leitura sempre por getters UTC
+  (`formatDateOnly`/`dateOnlyInput`), escrita `Date.UTC` local-day.
+
+### Dados de teste no dev (Empresa Demo)
+- Fornecedor "Fornecedor Demo LTDA"; `COMPRA-000001` (CONFIRMED, 3
+  parcelas, 1 quitada); `COMPRA-000002` (CANCELLED) — apagar só se o
+  usuário pedir.
+
+### ▶ PRÓXIMO PASSO (retomar aqui)
+1. **Commit/push da Fase 11 — aguardando confirmação do usuário.**
+2. `npm run backup` ao fechar a sessão.
+3. Depois: **Fase 12 — Relatórios (M5)** → 13 Dashboard → 14 Auditoria →
+   15 Segurança → 16 Deploy.

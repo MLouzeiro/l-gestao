@@ -44,6 +44,7 @@ export const salesOrders = pgTable(
     total: numeric("total", { precision: 14, scale: 2 })
       .notNull()
       .default("0"),
+    installments: integer("installments").notNull().default(1),
     notes: text("notes"),
     createdAt: timestamp("created_at", {
       withTimezone: true,

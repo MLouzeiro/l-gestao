@@ -147,7 +147,7 @@ drizzle/ (migrations SQL) · scripts/seed.ts · tests/ (unit/, integration/) · 
 `DRAFT → CONFIRMADO (reserva) → FATURADO (baixa + movimento + parcelas) → [devolução]`; cancelamento libera reserva. Pós-FATURADO imutável — correção só por devolução/estorno. Descontos limitados por papel (validados no servidor). Kits baixam componentes. Numeração sequencial por tenant.
 
 ## 10. Financeiro
-Geração de parcelas a partir de venda faturada (a receber) e entrada de compra confirmada (a pagar). Baixa registra `financial_payments` (juros/desconto); `paid_amount` nunca > `amount`. Fluxo de caixa = realizado (baixas) + previsto (contas em aberto por vencimento). Inadimplência = a receber vencida não paga. Nenhum valor calculado "só na tela".
+Geração de parcelas a partir de venda faturada (a receber) e entrada de compra confirmada (a pagar). Baixa registra `financial_payments` (juros/desconto); `paid_amount` nunca > `amount`. Fluxo de caixa = realizado (baixas) + previsto (contas em aberto por vencimento). Inadimplência = a receber vencida não paga. Nenhum valor calculado "só na tela". Contas vencidas (OPEN/PARTIAL com `due_date` < hoje) viram OVERDUE pelo cron diário `/api/cron/overdue` (Vercel Cron 03h UTC, `CRON_SECRET` por Bearer). **Só `purchase_entries` CONFIRMED gera contas a pagar** — a movimentação manual "Entrada — Compra" do módulo de estoque mexe apenas no estoque (sem financeiro), por decisão de escopo.
 
 ## 11. Auditoria
 Helper `audit()` em toda mutação sensível (LOGIN, CRIACAO/ALTERACAO_PRODUTO, ENTRADA/SAIDA_ESTOQUE, TRANSFERENCIA, CRIACAO/CANCELAMENTO_VENDA, PAGAMENTO, RECEBIMENTO, ALTERACAO_PERMISSAO, ALTERACAO_CONFIGURACAO). Tabela append-only, sem API de exclusão.

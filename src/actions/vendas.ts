@@ -59,6 +59,12 @@ const vendaSchema = z.object({
   customerId: z.string().uuid().nullable().optional(),
   sellerId: z.string().uuid().nullable().optional(),
   notes: z.string().max(2000).optional(),
+  installments: z
+    .number()
+    .int("Parcelas inválidas.")
+    .min(1, "Mínimo de 1 parcela.")
+    .max(12, "Máximo de 12 parcelas.")
+    .optional(),
   orderDiscountCents: z.number().int().min(0).optional(),
   items: z
     .array(itemSchema)

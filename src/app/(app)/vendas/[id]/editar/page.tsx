@@ -65,6 +65,7 @@ export default async function EditarVendaPage({
           customerId: venda.customerId,
           sellerId: venda.sellerId,
           notes: venda.notes,
+          installments: venda.installments,
           orderDiscountCents: venda.orderDiscountCents,
           items: venda.items.map((i) => ({
             productId: i.productId,

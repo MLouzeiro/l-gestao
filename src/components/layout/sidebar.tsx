@@ -19,7 +19,12 @@ function buildItems(permissions: readonly string[]): Item[] {
       href: permissions.includes("sales.view") ? "/vendas" : null,
       phase: "sem acesso",
     },
-    { label: "Financeiro", href: null, phase: "Fase 11" },
+    {
+      label: "Compras",
+      href: permissions.includes("purchases.view") ? "/compras" : null,
+      phase: "sem acesso",
+    },
+    { label: "Financeiro", href: permissions.includes("finance.view") ? "/financeiro" : null, phase: "sem acesso" },
     { label: "Relatórios", href: null, phase: "Fase 12" },
     { label: "Administração", href: "/admin" },
     { label: "Empresas", href: "/empresas" },
