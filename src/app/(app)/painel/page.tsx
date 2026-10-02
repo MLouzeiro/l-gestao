@@ -7,8 +7,9 @@ const modules = [
   { name: "Compras", desc: "Notas de entrada e contas a pagar", status: "Concluído" },
   { name: "Financeiro", desc: "Contas a receber e a pagar", status: "Concluído" },
   { name: "Relatórios", desc: "Indicadores e exportação CSV", status: "Concluído" },
+  { name: "Dashboard", desc: "Visão geral do período", status: "Concluído" },
   { name: "Administração", desc: "Equipe, papéis, convites e 2FA", status: "Concluído" },
-  { name: "Auditoria", desc: "Histórico de alterações sensíveis", status: "Fase 13" },
+  { name: "Auditoria", desc: "Histórico de alterações sensíveis", status: "Fase 14" },
 ];
 
 const roadmap = [
@@ -24,6 +25,10 @@ const roadmap = [
   { phase: "Fase 10", label: "Vendas: pedidos, faturamento e devoluções", done: true },
   { phase: "Fase 11", label: "Financeiro: recebimentos, compras e vencidas", done: true },
   { phase: "Fase 12", label: "Relatórios: indicadores e exportação CSV", done: true },
+  { phase: "Fase 13", label: "Dashboard: visão geral do período", done: true },
+  { phase: "Fase 14", label: "Auditoria: histórico de alterações", done: false },
+  { phase: "Fase 15", label: "Segurança e testes", done: false },
+  { phase: "Fase 16", label: "Deploy (Vercel)", done: false },
 ];
 
 export default async function PainelPage() {

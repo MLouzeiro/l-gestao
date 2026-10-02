@@ -474,7 +474,63 @@ receber + compras + cron + campo de parcelas na venda). Fases 1–11 prontas.
   antigos (30/09–02/10 01:31) ainda têm `total_cost` ~1000x menor — são
   pré-fix; imutáveis (nunca UPDATE), apagar só se o usuário pedir.
 
+---
+
+## Sessão 02/10/2026 (parte 3) — Fase 13: Dashboard (M5) CONCLUÍDA
+
+### Entregues
+- **F13.1 (TDD)** `src/server/modules/dashboard/dashboard-rules.ts` +
+  `tests/unit/dashboard-rules.test.ts` — 24 testes: `buildDailySeries`
+  (dias zerados UTC, cruza mês/ano, máx. `MAX_SERIES_DAYS` = 366,
+  `ReportError` se faltar/inverter data), `summarizeFunnel` (5 status +
+  total, ignora desconhecido), `ticketAvgCents` (round, null se 0),
+  `rankSellers` (líquido desc, desempate nome, limit) e
+  `nextDueAccounts` (só RECEIVABLE em aberto, `dueDate ≥ hoje`, ordenado,
+  limit — vencidas de fora).
+- **F13.2** `dashboard.service.ts` (`getDashboard`: reusa
+  `getSalesReport` dia/vendedor + `getStockReport` + `getFinanceReport`
+  e 2 consultas leves — funil por `createdAt` e próximos vencimentos;
+  queries **sequenciais** no mesmo tx) +
+  `src/lib/validators/dashboard.ts` (Zod, período obrigatório).
+- **F13.3** `src/app/(app)/dashboard/page.tsx` (KPIs ×5, gráfico
+  `revenue-bars.tsx` SVG/CSS puro, funil com barras, Alertas, Top
+  vendedores, Próximos vencimentos com `StatusBadge`, form GET de/ate,
+  banner de erro) + item **Dashboard** na sidebar (`reports.view`).
+- **F13.4** `tests/integration/dashboard.test.ts` — **7 testes**: RLS
+  (B zera com dados de A; B com dados próprios vê os números de B),
+  agregados (6000/ticket/série 7 dias/funil BILLED/estoque crítico+báixo
+  via `SAIDA_AJUSTE`/próximos vencimentos), parcela vencida →
+  inadimplência e some dos próximos, período 2020 zera vendas mas estoque
+  é posição atual, RBAC `reports.view`.
+- **F13.5 gate**: typecheck ✅ · unit **231** (12 suítes) ✅ ·
+  integração **88** (9 suítes) ✅ · `next build` ✅ (rota `/dashboard`).
+- **F13.6** docs (esta seção + ARQUITETURA §16 + painel módulos/roadmap).
+
+### Validação E2E (Playwright, dev :3001)
+- `/dashboard` logado: período default 03/09→02/10 (30 dias), KPIs
+  corretos (R$193,50 = 37,80 + 18,90 + 136,80; ticket R$48,38; a receber
+  R$46,80 da VENDA-000004), 30 barras com tooltips, funil 4 (100%
+  faturada), top 3 vendedores ordenados, próximo vencimento com badge.
+- Erros → banner (sem 500): `de > ate` → "Período inválido…";
+  `de=lixo` → "Data inválida."; range > 366 dias → "Período longo
+  demais… (máx. 366 dias)".
+- Temas **dark e light** validados por screenshot; console 0 erros.
+
+### Decisões de modelo (não reabrir)
+- Permissão do dashboard = **`reports.view`** (sem migration nova — mesma
+  matriz dos relatórios).
+- Período default = **últimos 30 dias UTC** (coerente com filtros de
+  `billedAt`); `de`/`ate` obrigatórios após o default; máx. 366 dias
+  (limite do gráfico).
+- Funil conta o **status atual** de pedidos **criados** no período
+  (`createdAt`), não eventos de transição.
+- Gráficos em **SVG/CSS puro** — nenhuma lib nova (regra "sem
+  biblioteca nova sem alinhar").
+- "A receber" = saldo em aberto **total** (sem filtro de período);
+  inadimplência = vencida não paga (regra por data, funciona sem cron);
+  próximos vencimentos excluem as vencidas (elas aparecem no KPI).
+
 ### ▶ PRÓXIMO PASSO (retomar aqui)
-1. **Commit/push da Fase 12 — feito** (`43c9643` em `origin/main`).
-2. Depois: **Fase 13 — Dashboard** → 14 Auditoria → 15 Segurança →
-   16 Deploy.
+1. **Commit/push da Fase 13 — aguardando confirmação do usuário.**
+2. `npm run backup` (rodar ao fechar a sessão).
+3. Depois: **Fase 14 — Auditoria** → 15 Segurança → 16 Deploy.

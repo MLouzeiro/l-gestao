@@ -13,6 +13,11 @@ type Item = {
 function buildItems(permissions: readonly string[]): Item[] {
   return [
     { label: "Painel", href: "/painel" },
+    {
+      label: "Dashboard",
+      href: permissions.includes("reports.view") ? "/dashboard" : null,
+      phase: "sem acesso",
+    },
     { label: "Estoque", href: "/estoque" },
     {
       label: "Vendas",

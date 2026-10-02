@@ -185,5 +185,18 @@ Camadas: funções **puras** `src/server/modules/relatorios/report-rules.ts` (cl
 
 ---
 
-## Fases (ordem de execução aprovada)
+## 16. Dashboard (Fase 13 — M5)
+Página única **`/dashboard`** com a visão geral do período (default: últimos 30 dias, `de`/`ate` obrigatórios via GET — Zod `src/lib/validators/dashboard.ts` + `normalizeRange`; erro → banner pt-BR, nunca 500). Permissão: **`reports.view`** (mesma matriz dos relatórios — sem permissão nova). Tudo dentro de `withTenant`, queries **sequenciais** no mesmo `tx` (regra pg@9).
+
+| Bloco | Fonte | Regra |
+|---|---|---|
+| KPIs | vendas (F12) + estoque (F12) + financeiro (F12) | faturamento/ticket (BILLED no período); estoque crítico/baixo + valor (`cost_price`); inadimplência = vencida não paga (regra por **data**, sem depender do cron); "A receber" = saldo em aberto **total** (sem filtro de período) |
+| Faturamento por dia | `getSalesReport(groupBy: dia)` | `buildDailySeries` preenche dias zerados (UTC), máx. **366 dias** (`MAX_SERIES_DAYS`); gráfico em **SVG/CSS puro** (`revenue-bars.tsx`, sem lib de gráficos) |
+| Funil de vendas | `sales_orders.status` (status **atual**) | pedidos **criados** no período (`createdAt`); `summarizeFunnel` conta os 5 status do enum |
+| Top vendedores | `getSalesReport(groupBy: vendedor)` | `rankSellers` ordena por líquido (desempate por nome) e limita a 5 |
+| Próximos vencimentos | `financial_accounts` (RECEIVABLE, em aberto, `dueDate ≥ hoje`) | `nextDueAccounts` — vencidas **ficam de fora** (aparecem no KPI de inadimplência); limit 5 |
+
+Camadas: regras puras `src/server/modules/dashboard/dashboard-rules.ts` (testadas em unit) → `dashboard.service.ts` (reusa os 3 services da Fase 12) → página server component + sidebar item (cosmético, servidor decide).
+
+---
 1 ✅ Arquitetura → 2 Banco → 3 Auth → 4 Empresas/tenants → 5 Usuários/Permissões → 6 Estoque → 7 Produtos → 8 Lotes/validade → 9 Inventário → 10 Vendas → 11 Financeiro → 12 Relatórios → 13 Dashboard → 14 Auditoria → 15 Segurança/Testes → 16 Deploy.
