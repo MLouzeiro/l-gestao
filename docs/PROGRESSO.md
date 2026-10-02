@@ -475,7 +475,6 @@ receber + compras + cron + campo de parcelas na venda). Fases 1–11 prontas.
   pré-fix; imutáveis (nunca UPDATE), apagar só se o usuário pedir.
 
 ### ▶ PRÓXIMO PASSO (retomar aqui)
-1. **Commit/push da Fase 12 — aguardando confirmação do usuário.**
-2. `npm run backup` (rodar ao fechar a sessão).
-3. Depois: **Fase 13 — Dashboard** → 14 Auditoria → 15 Segurança →
+1. **Commit/push da Fase 12 — feito** (`43c9643` em `origin/main`).
+2. Depois: **Fase 13 — Dashboard** → 14 Auditoria → 15 Segurança →
    16 Deploy.
