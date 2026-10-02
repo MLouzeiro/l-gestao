@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { formatDateOnly } from "@/lib/dates";
 import { formatBRL } from "@/lib/money";
-import { listAccounts } from "@/server/modules/financeiro/financial.service";
+import {
+  getFinancialSummary,
+  listAccounts,
+} from "@/server/modules/financeiro/financial.service";
 import type { FinancialStatus } from "@/server/modules/financeiro/financial-rules";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
+import { KpiStrip, type KpiItem } from "@/components/metrics/kpi-strip";
 import {
   DIRECTION_LABELS,
   STATUS_FILTERS,
@@ -39,15 +43,62 @@ export default async function FinanceiroPage({
   const page = Math.max(Number.parseInt(sp.page ?? "1", 10) || 1, 1);
   const filtro: Filtro = { aba, status, q };
 
-  const { rows, total } = await withTenant(tenantId, (tx) =>
-    listAccounts(tx, tenantId, {
+  const { rows, total, summary } = await withTenant(tenantId, async (tx) => {
+    const res = await listAccounts(tx, tenantId, {
       direction: aba === "pagar" ? "PAYABLE" : "RECEIVABLE",
       status: status !== "ALL" ? [status as FinancialStatus] : undefined,
       search: q,
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
-    }),
-  );
+    });
+    const kpis = await getFinancialSummary(tx, tenantId);
+    return { ...res, summary: kpis };
+  });
+
+  const pct = (part: number, whole: number): string =>
+    whole > 0 ? `${Math.round((part / whole) * 100)}%` : "0%";
+
+  const kpis: KpiItem[] = [
+    {
+      label: "A receber (aberto)",
+      value: formatBRL(summary.receivableOpenCents),
+      hint: `${summary.receivableOpenCount} conta${summary.receivableOpenCount === 1 ? "" : "s"}`,
+    },
+    {
+      label: "A receber vencido",
+      value: formatBRL(summary.receivableOverdueCents),
+      hint: `${pct(summary.receivableOverdueCents, summary.receivableOpenCents)} do a receber`,
+      tone: summary.receivableOverdueCents > 0 ? "danger" : "default",
+    },
+    {
+      label: "A receber em 7 dias",
+      value: formatBRL(summary.receivableDue7Cents),
+    },
+    {
+      label: "Recebido no mês",
+      value: formatBRL(summary.receivedMonthCents),
+      tone: "success",
+    },
+    {
+      label: "A pagar (aberto)",
+      value: formatBRL(summary.payableOpenCents),
+      hint: `${summary.payableOpenCount} conta${summary.payableOpenCount === 1 ? "" : "s"}`,
+    },
+    {
+      label: "A pagar vencido",
+      value: formatBRL(summary.payableOverdueCents),
+      hint: `${pct(summary.payableOverdueCents, summary.payableOpenCents)} do a pagar`,
+      tone: summary.payableOverdueCents > 0 ? "danger" : "default",
+    },
+    {
+      label: "A pagar em 7 dias",
+      value: formatBRL(summary.payableDue7Cents),
+    },
+    {
+      label: "Pago no mês",
+      value: formatBRL(summary.paidMonthCents),
+    },
+  ];
 
   const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
 
@@ -68,6 +119,8 @@ export default async function FinanceiroPage({
           total.
         </p>
       </div>
+
+      <KpiStrip items={kpis} />
 
       <div className="flex gap-2">
         {(["receber", "pagar"] as const).map((a) => (

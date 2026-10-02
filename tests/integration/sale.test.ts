@@ -21,6 +21,7 @@ import {
   confirmSale,
   createSale,
   deleteSale,
+  expireReservations,
   getSaleDetail,
   listSales,
   updateSale,
@@ -187,6 +188,96 @@ describe("vendas — reserva na confirmação (regra crítica)", () => {
       withTenant(tenantId, (tx) => confirmSale(tx, ctxFor(tenantId), saleId)),
     ).rejects.toThrow(/saldo insuficiente/i);
     expect((await getSale(tenantId, saleId))?.status).toBe("DRAFT");
+  });
+});
+
+describe("vendas — expiração de reservas (cron)", () => {
+  it("reserva vencida vira EXPIRED e libera o reserved; ativa permanece", async () => {
+    const { tenantId, warehouseId } = await createTestTenant();
+    const { productId } = await createTestProduct(tenantId);
+    await addStock(tenantId, warehouseId, productId, 100);
+
+    // venda A: reserva que JÁ venceu; venda B: reserva ainda válida
+    const saleA = await draftSale(tenantId, warehouseId, productId, 10);
+    await withTenant(tenantId, (tx) => confirmSale(tx, ctxFor(tenantId), saleA));
+    const saleB = await draftSale(tenantId, warehouseId, productId, 20);
+    await withTenant(tenantId, (tx) => confirmSale(tx, ctxFor(tenantId), saleB));
+
+    await withTenant(tenantId, (tx) =>
+      tx
+        .update(stockReservations)
+        .set({ expiresAt: new Date(Date.now() - 3_600_000) })
+        .where(
+          and(
+            eq(stockReservations.tenantId, tenantId),
+            eq(stockReservations.referenceId, saleA),
+          ),
+        ),
+    );
+
+    let bal = await getBalance(tenantId, productId);
+    expect(Number(bal?.quantity)).toBe(100);
+    expect(Number(bal?.reserved)).toBe(30);
+
+    const expired = await withTenant(tenantId, (tx) =>
+      expireReservations(tx, tenantId),
+    );
+    expect(expired).toBe(1);
+
+    // liberou SÓ a reserva vencida: 30 − 10 = 20 seguem reservados
+    bal = await getBalance(tenantId, productId);
+    expect(Number(bal?.quantity)).toBe(100);
+    expect(Number(bal?.reserved)).toBe(20);
+
+    const statuses = await withTenant(tenantId, async (tx) => {
+      const rows = await tx
+        .select({
+          referenceId: stockReservations.referenceId,
+          status: stockReservations.status,
+        })
+        .from(stockReservations)
+        .where(eq(stockReservations.tenantId, tenantId));
+      return Object.fromEntries(rows.map((r) => [r.referenceId, r.status]));
+    });
+    expect(statuses[saleA]).toBe("EXPIRED");
+    expect(statuses[saleB]).toBe("ACTIVE");
+
+    // a venda A continua CONFIRMED (só a reserva expira)
+    expect((await getSale(tenantId, saleA))?.status).toBe("CONFIRMED");
+
+    // idempotente: rodar de novo não muda nada
+    const again = await withTenant(tenantId, (tx) =>
+      expireReservations(tx, tenantId),
+    );
+    expect(again).toBe(0);
+    expect(Number((await getBalance(tenantId, productId))?.reserved)).toBe(20);
+  });
+
+  it("não expira reserva de outra empresa (RLS)", async () => {
+    const a = await createTestTenant();
+    const b = await createTestTenant();
+    const { productId } = await createTestProduct(b.tenantId);
+    await addStock(b.tenantId, b.warehouseId, productId, 50);
+
+    const saleB = await draftSale(b.tenantId, b.warehouseId, productId, 5);
+    await withTenant(b.tenantId, (tx) =>
+      confirmSale(tx, ctxFor(b.tenantId), saleB),
+    );
+    await withTenant(b.tenantId, (tx) =>
+      tx
+        .update(stockReservations)
+        .set({ expiresAt: new Date(Date.now() - 3_600_000) })
+        .where(eq(stockReservations.referenceId, saleB)),
+    );
+
+    // cron roda no contexto da Empresa A → RLS esconde a reserva de B
+    const expired = await withTenant(a.tenantId, (tx) =>
+      expireReservations(tx, a.tenantId),
+    );
+    expect(expired).toBe(0);
+
+    const bal = await getBalance(b.tenantId, productId);
+    expect(Number(bal?.reserved)).toBe(5);
   });
 });
 

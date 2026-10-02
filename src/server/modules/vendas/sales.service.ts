@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 import {
   batchBalances,
   batches,
@@ -972,7 +972,7 @@ async function settleReservations(
   tx: TenantTx,
   tenantId: string,
   saleId: string,
-  next: "RELEASED" | "CONSUMED",
+  next: "RELEASED" | "CONSUMED" | "EXPIRED",
 ): Promise<number> {
   const rows = await tx
     .select({
@@ -1019,6 +1019,36 @@ async function settleReservations(
   }
 
   return rows.length;
+}
+
+/**
+ * Cron: marca como EXPIRED as reservas ATIVAS com `expires_at` vencido e
+ * devolve o `reserved` ao saldo (mesma transação). A venda permanece
+ * CONFIRMED — um faturamento posterior refaz a checagem no applyMovement.
+ */
+export async function expireReservations(
+  tx: TenantTx,
+  tenantId: string,
+  now: Date = new Date(),
+): Promise<number> {
+  const rows = await tx
+    .select({ referenceId: stockReservations.referenceId })
+    .from(stockReservations)
+    .where(
+      and(
+        eq(stockReservations.tenantId, tenantId),
+        eq(stockReservations.referenceType, "SALE"),
+        eq(stockReservations.status, "ACTIVE"),
+        lt(stockReservations.expiresAt, now),
+      ),
+    );
+
+  const saleIds = [...new Set(rows.map((r) => r.referenceId).filter((v): v is string => !!v))];
+  let count = 0;
+  for (const saleId of saleIds) {
+    count += await settleReservations(tx, tenantId, saleId, "EXPIRED");
+  }
+  return count;
 }
 
 /**

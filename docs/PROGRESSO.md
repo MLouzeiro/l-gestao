@@ -1,9 +1,59 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 01/10/2026. Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 02/10/2026. Estado salvo para retomar a sessão seguinte.
 
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`;
 conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
+
+## Sessão 02/10/2026 — Auditoria da plataforma + Etapa 1 fechada
+
+### Auditoria mestre entregue (read-only, 30 seções)
+- Inspecionado sem alterar produção: arquitetura, banco (39 tabelas/6
+  migrations/RLS 28 tabelas), multi-tenant, módulos, segurança, testes, deploy.
+- **Plano aprovado (ordem)**: 1️⃣ Fechar Financeiro → 2️⃣ Comercial (planos,
+  módulos, contratos, landing, admin da plataforma) → 3️⃣ PDV+caixa →
+  4️⃣ Alimentação (mesas/cozinha/cardápio/delivery) → 5️⃣ Hardening.
+- Decisões: **camada de indicadores (KPIs) em todas as telas**; assinatura sem
+  gateway na v1; **sem emissão fiscal** (NFC-e fora da v1); auditoria+plano
+  registrados neste PROGRESSO.md.
+
+### Commit do usuário (não foi eu — 02/10 08:27)
+- `9cab895` — Fase 11 completa: UI `/financeiro` (lista+detalhe+baixa),
+  módulo de compras (CRUD + parcelas a pagar), cron `/api/cron/overdue`,
+  `vercel.json` com cron diário, `sale_payments`/`installments` (0006).
+
+### Alterações desta sessão (aguardando autorização para commit)
+- `sales.service.ts`: `expireReservations()` — reservas ATIVAS vencidas viram
+  EXPIRED e devolvem `stock_balances.reserved` (mesma transação); a venda
+  continua CONFIRMED; `settleReservations` aceita `"EXPIRED"`.
+- **Cron novo** `/api/cron/reservations` + entrada no `vercel.json`
+  (`0 4 * * *`, diário — compatível com plano Hobby; subir para horário no Pro).
+- `financial.service.ts`: `getFinancialSummary()` — agregados do painel
+  financeiro (aberto, vencido, 7 dias, recebido/pago no mês, contagens).
+- `components/metrics/kpi-strip.tsx` — componente `<KpiStrip>` reutilizável
+  (fundação da camada de indicadores das demais telas, Etapa 2).
+- `/financeiro`: 8 KPIs no topo (abaixo do título, acima das abas).
+- `.env.example`: comentário dos crons atualizado (overdue + reservations).
+
+### Validação (02/10/2026) — tudo passou
+- `npm run typecheck` ✅ · `npm test` → 10 suítes / **174** unit ✅ ·
+  `npm run test:integration` → 7 suítes / **70** testes ✅ (Docker) ·
+  `npm run build` ✅ (rota `/api/cron/reservations` no output).
+- Smoke (dev :3001): `/financeiro` renderiza os 8 KPIs; crons respondem
+  `{"ok":true,...}`; 0 erros de console (só favicon 404).
+- Testes novos em `tests/integration/sale.test.ts`: expiração libera só a
+  reserva vencida (30→20, EXPIRED/ACTIVE, idempotente) e **RLS**: cron na
+  Empresa A não enxerga reservas da Empresa B.
+
+### ▶ PRÓXIMO PASSO (retomar aqui)
+1. **Etapa 2 — Comercial**: migration 0007 (catálogo `modules`,
+   `tenant_modules`, `plan_modules`, enum de segmento expandido c/
+   LANCHONETE/RESTAURANTE/SUPERMERCADO, flags de produto `sale_enabled/
+   pdv_enabled/online_enabled/delivery_enabled` default true, `subscriptions`,
+   `tenant_contract_versions`), `requireModule()`, preset de módulos por
+   segmento, `<KpiStrip>` no `/painel` e nas telas existentes, longpage +
+   contratação + admin `/plataforma`.
+2. Depois: Etapa 3 PDV → 4 Alimentação → 5 Hardening.
 
 ## Sessão 01/10/2026 — Neon + Vercel no ar, Git e FIX do bypass RLS
 

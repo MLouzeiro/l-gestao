@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, ilike, lte, lt, sql } from "drizzle-orm";
 import {
   customers,
   financialAccounts,
@@ -229,6 +229,122 @@ export async function cancelAccountsForSource(
       ),
     );
   return accounts.length;
+}
+
+export type FinancialSummary = {
+  /** saldo em aberto (amount − paid) de contas OPEN/OVERDUE/PARTIAL */
+  receivableOpenCents: number;
+  receivableOverdueCents: number;
+  receivableDue7Cents: number;
+  payableOpenCents: number;
+  payableOverdueCents: number;
+  payableDue7Cents: number;
+  /** principal baixado no mês corrente */
+  receivedMonthCents: number;
+  paidMonthCents: number;
+  receivableOpenCount: number;
+  payableOpenCount: number;
+};
+
+/**
+ * Indicadores do painel financeiro — agregados no servidor, sempre sob
+ * withTenant (RLS). Dinheiro em centavos; banco em numeric(14,2).
+ */
+export async function getFinancialSummary(
+  tx: TenantTx,
+  tenantId: string,
+  today: Date = new Date(),
+): Promise<FinancialSummary> {
+  const buckets = await tx
+    .select({
+      direction: financialAccounts.direction,
+      status: financialAccounts.status,
+      balance: sql<string>`coalesce(sum(${financialAccounts.amount} - ${financialAccounts.paidAmount}), '0')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(financialAccounts)
+    .where(eq(financialAccounts.tenantId, tenantId))
+    .groupBy(financialAccounts.direction, financialAccounts.status);
+
+  const summary: FinancialSummary = {
+    receivableOpenCents: 0,
+    receivableOverdueCents: 0,
+    receivableDue7Cents: 0,
+    payableOpenCents: 0,
+    payableOverdueCents: 0,
+    payableDue7Cents: 0,
+    receivedMonthCents: 0,
+    paidMonthCents: 0,
+    receivableOpenCount: 0,
+    payableOpenCount: 0,
+  };
+
+  for (const b of buckets) {
+    if (b.status === "PAID" || b.status === "CANCELLED") continue;
+    const balanceCents = toCents(b.balance);
+    const receivable = b.direction === "RECEIVABLE";
+    if (receivable) {
+      summary.receivableOpenCents += balanceCents;
+      summary.receivableOpenCount += b.count;
+      if (b.status === "OVERDUE") summary.receivableOverdueCents += balanceCents;
+    } else {
+      summary.payableOpenCents += balanceCents;
+      summary.payableOpenCount += b.count;
+      if (b.status === "OVERDUE") summary.payableOverdueCents += balanceCents;
+    }
+  }
+
+  const dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const in7Days = new Date(dayStart);
+  in7Days.setDate(in7Days.getDate() + 7);
+
+  const dueSoon = await tx
+    .select({
+      direction: financialAccounts.direction,
+      balance: sql<string>`coalesce(sum(${financialAccounts.amount} - ${financialAccounts.paidAmount}), '0')`,
+    })
+    .from(financialAccounts)
+    .where(
+      and(
+        eq(financialAccounts.tenantId, tenantId),
+        inArray(financialAccounts.status, ["OPEN", "PARTIAL"]),
+        gte(financialAccounts.dueDate, dayStart),
+        lte(financialAccounts.dueDate, in7Days),
+      ),
+    )
+    .groupBy(financialAccounts.direction);
+
+  for (const r of dueSoon) {
+    const cents = toCents(r.balance);
+    if (r.direction === "RECEIVABLE") summary.receivableDue7Cents += cents;
+    else summary.payableDue7Cents += cents;
+  }
+
+  const monthStart = new Date(dayStart.getFullYear(), dayStart.getMonth(), 1);
+  const [month] = await tx
+    .select({
+      received: sql<string>`coalesce(sum(case when ${financialAccounts.direction} = 'RECEIVABLE' then ${financialPayments.amount} else '0' end), '0')`,
+      paid: sql<string>`coalesce(sum(case when ${financialAccounts.direction} = 'PAYABLE' then ${financialPayments.amount} else '0' end), '0')`,
+    })
+    .from(financialPayments)
+    .innerJoin(
+      financialAccounts,
+      eq(financialPayments.financialAccountId, financialAccounts.id),
+    )
+    .where(
+      and(
+        eq(financialPayments.tenantId, tenantId),
+        eq(financialAccounts.tenantId, tenantId),
+        gte(financialPayments.paidAt, monthStart),
+      ),
+    );
+
+  if (month) {
+    summary.receivedMonthCents = toCents(month.received);
+    summary.paidMonthCents = toCents(month.paid);
+  }
+
+  return summary;
 }
 
 /** Ids de todos os tenants (sem contexto de RLS — tenants não tem policy). */
