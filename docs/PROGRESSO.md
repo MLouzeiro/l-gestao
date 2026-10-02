@@ -531,6 +531,6 @@ receber + compras + cron + campo de parcelas na venda). Fases 1–11 prontas.
   próximos vencimentos excluem as vencidas (elas aparecem no KPI).
 
 ### ▶ PRÓXIMO PASSO (retomar aqui)
-1. **Commit/push da Fase 13 — aguardando confirmação do usuário.**
+1. **Commit/push da Fase 13 — feito** (`83f34e0` em `origin/main`).
 2. `npm run backup` (rodar ao fechar a sessão).
 3. Depois: **Fase 14 — Auditoria** → 15 Segurança → 16 Deploy.
