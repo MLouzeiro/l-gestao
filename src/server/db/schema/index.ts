@@ -6,5 +6,6 @@ export * from "./cadastros";
 export * from "./estoque";
 export * from "./compras";
 export * from "./vendas";
+export * from "./caixa";
 export * from "./financeiro";
 export * from "./auditoria";

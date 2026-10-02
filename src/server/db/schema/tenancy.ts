@@ -115,6 +115,8 @@ export const tenantSettings = pgTable(
     custoMetodo: costMethodEnum("custo_metodo")
       .notNull()
       .default("MEDIO"),
+    pixKey: text("pix_key"),
+    pixCity: text("pix_city"),
     extra: jsonb("extra").notNull().default(sql`'{}'::jsonb`),
     createdAt: timestamp("created_at", {
       withTimezone: true,

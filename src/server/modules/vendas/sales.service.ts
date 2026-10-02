@@ -13,10 +13,15 @@ import {
   users,
   warehouses,
 } from "@/server/db/schema";
+import type {
+  SaleOriginValue,
+  SalePaymentMethodValue,
+} from "@/server/db/schema";
 import type { TenantTx } from "@/server/tenant/with-tenant";
 import { fromCents, toCents } from "@/lib/money";
 import { nextCounter } from "@/server/db/counter";
 import { createReceivables } from "@/server/modules/financeiro/financial.service";
+import { audit } from "@/server/audit/log";
 import {
   applyMovement,
   MovementError,
@@ -55,15 +60,19 @@ export type SaleItemInput = {
   discountCents?: number;
 };
 
-export type SaleInput = {
-  warehouseId: string;
-  customerId?: string | null;
-  sellerId?: string | null;
-  notes?: string | null;
-  installments?: number;
-  items: readonly SaleItemInput[];
-  orderDiscountCents?: number;
-};
+  export type SaleInput = {
+    warehouseId: string;
+    customerId?: string | null;
+    sellerId?: string | null;
+    notes?: string | null;
+    installments?: number;
+    items: readonly SaleItemInput[];
+    orderDiscountCents?: number;
+    /** PDV persiste a forma de pagamento escolhida no balcão. */
+    paymentMethod?: SalePaymentMethodValue;
+    /** Origem da venda (default VENDA; PDV grava 'PDV'). */
+    origin?: SaleOriginValue;
+  };
 
 const COUNTER_KEY = "sale";
 
@@ -308,11 +317,29 @@ export async function createSale(
       orderDiscount: centsDb(totals.orderDiscountCents),
       total: centsDb(totals.totalCents),
       installments,
+      paymentMethod: input.paymentMethod ?? "DINHEIRO",
+      origin: input.origin ?? "VENDA",
       notes: input.notes?.trim() || null,
     })
     .returning({ id: salesOrders.id });
 
   await writeItems(tx, ctx.tenantId, order.id, input.items);
+
+  await audit(tx, {
+    action: "CRIACAO_VENDA",
+    module: "vendas",
+    entityType: "sale_order",
+    entityId: order.id,
+    after: {
+      status: "DRAFT",
+      customerId: input.customerId ?? null,
+      subtotalCents: totals.subtotalCents,
+      totalCents: totals.totalCents,
+      itemCount: input.items.length,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
 
   return { saleId: order.id, number, totals };
 }
@@ -380,6 +407,29 @@ export async function updateSale(
       and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, saleId)),
     );
 
+  await audit(tx, {
+    action: "ALTERACAO_VENDA",
+    module: "vendas",
+    entityType: "sale_order",
+    entityId: saleId,
+    before: {
+      status: order.status,
+      totalCents: toCents(order.total),
+      sellerId: order.sellerId,
+      installments: order.installments,
+    },
+    after: {
+      status: order.status,
+      customerId: input.customerId ?? null,
+      totalCents: totals.totalCents,
+      itemCount: input.items.length,
+      sellerId,
+      installments,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
   return { saleId, totals };
 }
 
@@ -405,6 +455,22 @@ export async function deleteSale(
     .where(
       and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, saleId)),
     );
+
+  await audit(tx, {
+    action: "EXCLUSAO_VENDA",
+    module: "vendas",
+    entityType: "sale_order",
+    entityId: saleId,
+    before: {
+      status: order.status,
+      number: order.number,
+      totalCents: toCents(order.total),
+      sellerId: order.sellerId,
+      installments: order.installments,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
 
   return { saleId };
 }
@@ -451,6 +517,17 @@ export async function confirmSale(
       and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, saleId)),
     );
 
+  await audit(tx, {
+    action: "CONFIRMACAO_VENDA",
+    module: "vendas",
+    entityType: "sale_order",
+    entityId: saleId,
+    before: { status: order.status },
+    after: { status: "CONFIRMED", reserved },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
   return { saleId, reserved };
 }
 
@@ -477,6 +554,17 @@ export async function cancelSale(
       and(eq(salesOrders.tenantId, ctx.tenantId), eq(salesOrders.id, saleId)),
     );
 
+  await audit(tx, {
+    action: "CANCELAMENTO_VENDA",
+    module: "vendas",
+    entityType: "sale_order",
+    entityId: saleId,
+    before: { status: order.status },
+    after: { status: "CANCELLED", released },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
   return { saleId, released };
 }
 
@@ -489,7 +577,7 @@ export async function billSale(
   tx: TenantTx,
   ctx: SaleContext,
   saleId: string,
-): Promise<{ saleId: string; movements: number }> {
+): Promise<{ saleId: string; movements: number; accountIds: string[] }> {
   const order = await lockOrder(tx, ctx.tenantId, saleId);
   assertTransitionOrThrow(order.status, "BILLED");
 
@@ -566,7 +654,7 @@ export async function billSale(
     );
 
   // parcelas a receber: 1º vencimento no próprio faturamento, demais +1 mês
-  await createReceivables(
+  const { ids: accountIds } = await createReceivables(
     tx,
     { tenantId: ctx.tenantId, userId: ctx.userId },
     {
@@ -578,7 +666,22 @@ export async function billSale(
     },
   );
 
-  return { saleId, movements };
+  await audit(tx, {
+    action: "FATURAMENTO_VENDA",
+    module: "vendas",
+    entityType: "sale_order",
+    entityId: saleId,
+    before: { status: order.status },
+    after: {
+      status: "BILLED",
+      totalCents: toCents(order.total),
+      movements,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
+  return { saleId, movements, accountIds };
 }
 
 // ---------------------------------------------------------------- leituras

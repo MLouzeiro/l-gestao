@@ -25,6 +25,11 @@ function buildItems(permissions: readonly string[]): Item[] {
       phase: "sem acesso",
     },
     {
+      label: "PDV",
+      href: permissions.includes("sales.manage") ? "/pdv" : null,
+      phase: "sem acesso",
+    },
+    {
       label: "Compras",
       href: permissions.includes("purchases.view") ? "/compras" : null,
       phase: "sem acesso",

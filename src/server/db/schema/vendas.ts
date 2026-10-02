@@ -12,13 +12,21 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { saleStatusEnum } from "./enums";
+import {
+  saleOriginEnum,
+  salePaymentMethodEnum,
+  saleStatusEnum,
+} from "./enums";
 import { tenants } from "./tenancy";
 import { users } from "./auth";
 import { customers, products, warehouses } from "./cadastros";
 import { batches } from "./estoque";
 
 // Vendas — máquina de estados DRAFT → CONFIRMED → BILLED (imutável após)
+
+export type SalePaymentMethodValue =
+  (typeof salePaymentMethodEnum.enumValues)[number];
+export type SaleOriginValue = (typeof saleOriginEnum.enumValues)[number];
 
 export const salesOrders = pgTable(
   "sales_orders",
@@ -32,6 +40,10 @@ export const salesOrders = pgTable(
     warehouseId: uuid("warehouse_id").notNull(),
     sellerId: uuid("seller_id"),
     status: saleStatusEnum("status").notNull().default("DRAFT"),
+    paymentMethod: salePaymentMethodEnum("payment_method")
+      .notNull()
+      .default("DINHEIRO"),
+    origin: saleOriginEnum("origin").notNull().default("VENDA"),
     subtotal: numeric("subtotal", { precision: 14, scale: 2 })
       .notNull()
       .default("0"),

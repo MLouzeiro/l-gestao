@@ -1,9 +1,87 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 02/10/2026. Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 02/10/2026 (tarde). Estado salvo para retomar a sessão seguinte.
 
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`;
 conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
+
+## Sessão 02/10/2026 (tarde) — Etapa 3: PDV + Caixa CONCLUÍDA
+
+Pedido do usuário: "PDV igual ao do l-estoque, mas melhorado". Ordem alterada
+com aprovação: PDV pulou para frente (Etapa 2 — Comercial fica para depois).
+Escopo aprovado: caixa completo + atalhos F1–F9 (mapa proposto).
+
+### Migration `0007_pdv_cash.sql` (à mão + journal manual)
+- Enums `sale_payment_method` (DINHEIRO/PIX/DEBITO/CREDITO/VALE/OUTRO),
+  `sale_origin` (PDV/VENDA/ONLINE/IMPORT), `cash_status`, `cash_movement_type`.
+- `sales_orders` + `payment_method` (default DINHEIRO) + `origin` (VENDA).
+- `tenant_settings` + `pix_key`, `pix_city` (QR PIX do balcão).
+- Tabelas `cash_registers` (1 OPEN por tenant — unique parcial) e
+  `cash_movements` (livro imutável: RLS só SELECT/INSERT).
+- RLS ENABLE+FORCE nas 2 + grants padrão 0005. Aplicada no Docker local.
+
+### Backend (TDD: RED → GREEN)
+- `src/lib/pix.ts` — payload PIX (EMV + CRC-16/CCITT-FALSE), centavos;
+  `normalizePixKey` (celular→+55, CNPJ dígitos, e-mail/aleatória passthrough).
+- `src/server/modules/pdv/pdv-rules.ts` — troco, validação de pagamento
+  (DINHEIRO exige recebido; CREDITO 1–12; demais à vista), esperado por forma
+  (abertura + vendas + suprimentos − sangrias), limite de sangria, diferença.
+- `src/server/modules/pdv/cash.service.ts` — `openCash`/`closeCash`
+  (contagem por forma + diferença), `addSupply`/`addSangria` (sangria ≤ saldo),
+  `getOpenCash`/`getCashSummary`.
+- `src/server/modules/pdv/pdv.service.ts` — `checkoutPdv`: caixa aberto →
+  `createSale` (paymentMethod+origin PDV) → `confirmSale` → `billSale` →
+  à vista (`registerPayment` → conta **PAID**) → movimento VENDA no caixa →
+  `audit()` — **uma transação só**. Leituras: `listPdvProducts`
+  (disponível = saldo − reservado), `listPdvCustomers`, `getPdvSettings`.
+- `sales.service.ts` — `SaleInput` + `paymentMethod`/`origin`; `billSale`
+  retorna `accountIds` (backwards-compatible).
+- `src/actions/pdv.ts` — `_checkoutPdv`/`_abrirCaixa`/`_fecharCaixa`
+  (`sales.manage`) e `_suprimento`/`_sangria` (`finance.manage`) — Zod +
+  `withTenant(tenantId, userId, fn)` + retorno `{ok,data}/{ok,error}`.
+
+### Frontend
+- `/pdv` (client `pdv-client.tsx`): layout do l-estoque — busca (barcode-first
+  via `resolveProductByCode`, Enter) + QTD + grid | carrinho + total gigante +
+  4 formas + parcelas crédito + **recebido → troco** + desconto (F4) + PIX QR
+  (`react-qr-code` instalado) com modal tela cheia + cliente (F6).
+- Atalhos **F1–F9** (preventDefault + refs p/ closure): F1 ajuda, F2 busca,
+  F3 qtd, F4 desconto, F5 finalizar, F6 cliente, F7 pagamento, F8 cupom
+  (vai p/ `/vendas/{id}`), F9 remove item selecionado.
+- Modais de caixa (abrir/fechar/suprimento/sangria) com esperado/contagem;
+  `<KpiStrip>` (Caixa, Vendas no caixa, Total vendido, Esperado em dinheiro).
+- Sidebar: item **PDV** (gate `sales.manage`).
+
+### Testes (todos verdes)
+- Unit 15 suítes / **275** (+`pix.unit.test.ts` CRC16 vetores/payload,
+  `pdv-rules.test.ts` troco/pagamento/caixa/RBAC-sangria).
+- Integração 10 suítes / **98** (+`pdv.test.ts` 10 testes: à vista 10→7 com
+  conta PAID + pagamento + movimento, crédito 3×, sem caixa recusa, abertura
+  duplicada recusa, sangria acima do saldo recusa, fechamento diferença −500,
+  **RLS** caixa A invisível p/ B, estoque insuficiente).
+- **Smoke E2E (dev :3001)**: abrir caixa (fundo 50) → vender Café Torrado
+  (VENDA-000005, DINHEIRO 50 → troco 31,10) → KPIs (Aberto #1, 1 venda,
+  esperado 68,90) → fechar caixa contando 68,90 → **diferença R$ 0,00**.
+  Banco conferido: `cash_movements` ABERTURA/VENDA/FECHAMENTO, venda BILLED
+  origin PDV, conta PAID. Screenshot `pdv-fluxo-completo.png`.
+- Fix UX: `catch` no submit dos modais de caixa (modal não trava mais em
+  falha de rede).
+
+### ⚠️ Bloqueio conhecido (NÃO é do PDV)
+- `npm run build`/typecheck falham SOMENTE em `src/actions/equipe.ts` e
+  `src/actions/vendas.ts` — **WIP da sessão paralela** (Fase 14 auditoria,
+  em andamento: criou `src/server/audit/` + `src/server/modules/auditoria/`
+  e está adaptando as actions ao `withTenant(tenantId, userId, fn)`).
+- PDV usa/estende `sales.service.ts` (arquivo compartilhado com a auditoria):
+  commit do PDV precisa levar junto `src/server/audit/` +
+  `src/server/modules/auditoria/` (senão o import do audit quebra).
+- Dev DB: 2FA do `teste@empresa.com.br` reconfigurado (segredo novo) para o
+  smoke; códigos de recuperação gerados — apenas ambiente local.
+
+### ▶ PRÓXIMO PASSO
+1. Commit do PDV (com autorização) — ver bloqueio acima.
+2. Etapa 2 — Comercial (planos, módulos, contratos, landing, admin) quando
+   a sessão de auditoria terminar; depois Alimentação e Hardening.
 
 ## Sessão 02/10/2026 — Auditoria da plataforma + Etapa 1 fechada
 

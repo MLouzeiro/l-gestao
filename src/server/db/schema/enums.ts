@@ -76,3 +76,29 @@ export const financialStatusEnum = pgEnum("financial_status", [
   "PARTIAL",
   "CANCELLED",
 ]);
+
+export const salePaymentMethodEnum = pgEnum("sale_payment_method", [
+  "DINHEIRO",
+  "PIX",
+  "DEBITO",
+  "CREDITO",
+  "VALE",
+  "OUTRO",
+]);
+
+export const saleOriginEnum = pgEnum("sale_origin", [
+  "PDV",
+  "VENDA",
+  "ONLINE",
+  "IMPORT",
+]);
+
+export const cashStatusEnum = pgEnum("cash_status", ["OPEN", "CLOSED"]);
+
+export const cashMovementTypeEnum = pgEnum("cash_movement_type", [
+  "ABERTURA",
+  "VENDA",
+  "SUPRIMENTO",
+  "SANGRIA",
+  "FECHAMENTO",
+]);
