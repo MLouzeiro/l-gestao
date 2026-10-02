@@ -171,6 +171,18 @@ Migrations geradas (`drizzle-kit generate`) e aplicadas por GitHub Action no mer
 Padrões: BRL único; kits baixam componentes; margem = % sobre custo; sem Redis na v1; arquivos em Vercel Blob; sem cálculo fiscal na v1; e-mails via Resend; Sentry na v1; expiração de reserva híbrida; alertas por painel na v1; export CSV na v1; numeração `VENDA-000123`; LGPD sem apagar histórico; unidades globais.
 Frontend: **tema dark por padrão** (`<html class="dark">` + toggle claro/escuro persistido em `lg-theme`; remap das utilidades Tailwind no bloco `.dark` de `globals.css` — novas telas usam as mesmas classes, nunca `dark:` espalhado); **cupom térmico não fiscal (80mm) na venda faturada — NFC-e é fase futura**; leitor de código de barras USB no fluxo de vendas (câmera/QR fica para depois).
 
+## 15. Relatórios (Fase 12 — M5)
+Quatro relatórios sob `/relatorios` (abas), todos lidos dentro de `withTenant` com os mesmos filtros da sessão (nunca `tenant_id` do cliente) e **sempre paginados/filtrados** (20/página; `opts.all` só para export):
+
+| Relatório | Fatos | Regras próprias |
+|---|---|---|
+| Estoque | `stock_balances` × produtos/depositios (sem soft-delete) | valor = saldo × `products.cost_price` (custo ref. cadastrado — não existe custo médio corrente); nível `CRITICO` (saldo ≤ 0), `BAIXO` (0 < saldo ≤ mínimo), senão `OK` |
+| Vendas | `sales_orders` **BILLED** (`billedAt`), itens e movimentos `SAIDA_VENDA` | agrupa por dia (UTC)/vendedor/produto; receita por produto = linha do item (desconto de pedido **não** é rateado — aparece só em dia/vendedor); custo = soma de `stock_movements.totalCost` |
+| Compras | `purchase_entries` **CONFIRMED** por `entryDate` | agrupa por fornecedor/produto |
+| Financeiro | `financial_accounts` com `dueDate` no período + `financial_payments` por `paidAt` | resumo por status + inadimplência (OVERDUE ou vencida não paga); `paid_amount ≤ amount` |
+
+Camadas: funções **puras** `src/server/modules/relatorios/report-rules.ts` (classificação, agregações, `paginate`, `toCsv` com `;` + BOM + CRLF) → fatos em `report.service.ts` → filtros Zod compartilhados (`src/lib/validators/relatorios.ts`) → UI `/relatorios` e rota dedicada **`GET /api/exports/[tipo]`** (sessão Better Auth → 401; tenant da sessão; `assertPermission("reports.view")` → 403; CSV `text/csv` com `Content-Disposition` — nunca export embutido em página). Margem = `(líquido − custo) / custo` (null quando custo = 0).
+
 ---
 
 ## Fases (ordem de execução aprovada)

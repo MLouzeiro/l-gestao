@@ -390,7 +390,92 @@ receber + compras + cron + campo de parcelas na venda). Fases 1–11 prontas.
   usuário pedir.
 
 ### ▶ PRÓXIMO PASSO (retomar aqui)
-1. **Commit/push da Fase 11 — aguardando confirmação do usuário.**
-2. `npm run backup` ao fechar a sessão.
-3. Depois: **Fase 12 — Relatórios (M5)** → 13 Dashboard → 14 Auditoria →
+1. **Commit/push da Fase 11 — feito** (`9cab895` em `origin/main`).
+2. Depois: **Fase 12 — Relatórios (M5)** → 13 Dashboard → 14 Auditoria →
    15 Segurança → 16 Deploy.
+
+## Sessão 02/10/2026 (parte 2) — Fase 12: Relatórios (M5) CONCLUÍDA
+
+**Fase 12 — CONCLUÍDA e verificada** (escopo aprovado "tudo de uma vez":
+4 relatórios + export CSV). Fases 1–12 prontas.
+
+### O que a Fase 12 entregou
+- **F12.1** `src/server/modules/relatorios/report-rules.ts` (regras puras,
+  TDD) + `tests/unit/report-rules.test.ts` (**33 testes**): `assertReportTipo`,
+  `ReportError`, `normalizeRange` (de > ate = erro pt-BR), classificação
+  `CRITICO/BAIXO/OK`, `stockValueCents`, `calcMargin` (% sobre custo, null
+  quando custo = 0), `toCsv` (`;` + BOM + CRLF), `csvMoney/csvQty` (pt-BR),
+  `paginate/totalPages`, agregadores `aggregateSalesByDay/BySeller/ByProduct`,
+  `aggregatePurchasesBySupplier/ByProduct`, `summarizeAccounts`.
+- **F12.2** `report.service.ts` — `getStockReport`, `getSalesReport`,
+  `getPurchasesReport`, `getFinanceReport` (todos em `TenantTx` + filtros
+  `page/pageSize`; `opts.all` ignora paginação p/ CSV). Agregação roda nas
+  regras puras — o service só busca fatos.
+- **F12.3** `src/lib/validators/relatorios.ts` (Zod compartilhado página/rota)
+  + `src/app/api/exports/[tipo]/route.ts` (GET: `assertReportTipo` → 400,
+  sessão → 401, tenant → 400, membership → 403, `assertPermission(
+  "reports.view")` → 403, `normalizeRange` → 400, CSV `text/csv` +
+  `Content-Disposition` + `Cache-Control: no-store`, 500 genérico).
+- **F12.4 (UI)** `src/app/(app)/relatorios/page.tsx` (Server Component:
+  abas Estoque/Vendas/Compras/Financeiro, KPIs, filtros GET, tabela,
+  paginação 20, botão **Exportar CSV** → rota dedicada com os mesmos
+  params) + `src/components/relatorios/level-badge.tsx` + item
+  "Relatórios" da sidebar liberado com `reports.view`.
+- **F12.5** `tests/integration/reports.test.ts` (**11 testes**): RLS A≠B nos
+  4 relatórios, agregados batem com o livro (custo/margem/pagamentos),
+  filtro de período, paginação vs `all`, classificação BAIXO por mínimo,
+  RBAC `reports.view` (ADMIN/GERENTE/FINANCEIRO/VISUALIZADOR ✔ ·
+  VENDEDOR/ESTOQUISTA ✗ → 403).
+- **F12.6** Gate: `typecheck` ✅ · unit **207** (11 suítes) ✅ · integração
+  **81** (8 suítes) ✅ · `build` ✅ (rotas `/relatorios`,
+  `/api/exports/[tipo]`).
+- **F12.7** Docs (este arquivo + ARQUITETURA **§15 Relatórios**), painel
+  (Relatórios "Concluído", roadmap Fase 12 ✓).
+
+### Correções no caminho (Fase 12)
+1. `Promise.all` sobre o **mesmo client** de uma transação → warning
+   `client.query()` do pg (removido em pg@9). Serializado em
+   `report.service.ts` e `relatorios/page.tsx` (sequencial no mesmo `tx`).
+2. Links de aba vazavam `groupBy` de outra aba (ex.: `groupBy=dia` em
+   Compras que só aceita `fornecedor|produto` → 400). `TAB_KEYS` por tipo.
+3. Form enviava `groupBy` duplicado (hidden + select) → virava `string[]`
+   e caía no default. Removido o hidden.
+
+### Decisões de modelo (não reabrir)
+- Custo do relatório de estoque = **`products.cost_price`** (custo ref.
+  cadastrado) — não existe custo médio corrente armazenado.
+- Receita por produto (vendas) = linha do item; **desconto de pedido não é
+  rateado** por produto (soma só em dia/vendedor).
+- Vendas só `BILLED` + `billedAt`; compras só `CONFIRMED` por `entryDate`;
+  financeiro por `dueDate` no período (baixas por `paidAt`).
+- Datas de agregação por dia = UTC (`T00:00:00.000Z`…`T23:59:59.999Z`).
+- Rota CSV: `direction` default `RECEIVABLE`, `groupBy` default `dia/
+  fornecedor` (mesmos defaults da UI); `?tipo=` desconhecido/inválido na
+  página cai no fallback Estoque (200).
+- `ESTOQUISTA`/`VENDEDOR` não têm `reports.view` (matriz da Fase 5) —
+  sidebar esconde, servidor nega.
+
+### Validação E2E (Playwright, dev :3001)
+- 4 abas com dados reais: Estoque (4 itens, R$1.536,99), Vendas (KPI +
+  agrupamento dia/vendedor/produto com vendedores), Compras (2 CONFIRMED,
+  R$145,00), Financeiro (4 contas a pagar, badges, parcelas 1/3…3/3,
+  origem Compra; contas a receber da `VENDA-000004`).
+- Filtros: nível `CRITICO` → "Nenhum resultado"; período `de > ate` →
+  banner "Período inválido…" (sem 500); selects preservados na URL.
+- CSV: 4 tipos → 200, `text/csv`, BOM na linha de bytes (`ef bb bf`),
+  `;`, CRLF, dinheiro pt-BR (`545,19`); sem sessão → 401
+  `{"error":"Não autenticado."}`; `groupBy` inválido → 400 com
+  `fieldErrors`. Console 0 erros de app.
+
+### Dados de teste no dev (Empresa Demo)
+- `VENDA-000004` (R$46,80, BILLED 02/10 13:37, gerou conta
+  `VENDA-000004` a receber) — fluxo real pela UI; custos corretos
+  (16,50 + 10,69) confirmam o fix do `/1000` da Fase 11. Os 3 movimentos
+  antigos (30/09–02/10 01:31) ainda têm `total_cost` ~1000x menor — são
+  pré-fix; imutáveis (nunca UPDATE), apagar só se o usuário pedir.
+
+### ▶ PRÓXIMO PASSO (retomar aqui)
+1. **Commit/push da Fase 12 — aguardando confirmação do usuário.**
+2. `npm run backup` (rodar ao fechar a sessão).
+3. Depois: **Fase 13 — Dashboard** → 14 Auditoria → 15 Segurança →
+   16 Deploy.
