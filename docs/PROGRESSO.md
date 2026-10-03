@@ -1,9 +1,38 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 02/10/2026 (tarde). Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 02/10/2026 (noite). Estado salvo para retomar a sessão seguinte.
 
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`;
 conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
+
+## Sessão 02/10/2026 (noite) — Deploy produção + PDV sem barra de rolagem
+
+### Deploy do PDV (commit `5bd8446`) — CONCLUÍDO
+- Push `c1d9d5d..5bd8446` → `MLouzeiro/l-gestao`; Action **"Migrations"**
+  verde (typecheck + 258 testes unit + `db:migrate`) — o secret
+  `DATABASE_URL_ADMIN` **já estava configurado** (pendência do PROGRESSO
+  anterior resolvida; a Action aplica migrations no push de `drizzle/**`).
+- **Migration 0007 confirmada no Neon produção** (`tiny-dew-43682715`):
+  `cash_registers`/`cash_movements`, `sales_orders.payment_method/origin`,
+  `tenant_settings.pix_key/pix_city` — journal id 8.
+- Vercel produção no ar: `/pdv` responde (307 → login, guard OK).
+- Pré-validação do commit num worktree limpo antes do push (typecheck 0 erros
+  + 258/258 unit) — a árvore commitada fica verde; o WIP da sessão de
+  auditoria (actions/*) nunca foi ao repositório.
+
+### PDV sem barra de rolagem (pedido do usuário, com print)
+- Causa: o root usava `h-[calc(100vh-4.5rem)]`, mas o chrome real do layout é
+  header `h-14` (3.5rem) + `main p-6` (3rem) = **6.5rem** → sobrava ~32px e a
+  página rolava (o painel de pagamento sumia embaixo).
+- `pdv-client.tsx`: root `lg:h-[calc(100dvh-6.5rem)] lg:overflow-hidden`
+  (abaixo de lg vira `h-auto` com scroll natural); cards 150→132px;
+  itens do carrinho `min-h-0` (scroll interno); painel de pagamento
+  compacto (Recebido + Desconto em `grid-cols-2`, troco dentro do campo,
+  botões/apertos menores); gaps 3→2.
+- Validado: **sem scroll** em 2133x900, 1518x853, 1422x800, 2844x1600
+  (`scrollHeight == clientHeight`) com Finalizar/Carrinho sempre visíveis;
+  troco renderizando (R$ 31,10 no smoke). Screenshot `pdv-sem-rolagem.png`.
+- 275/275 unit ✅ · typecheck sem erros nos arquivos do PDV ✅.
 
 ## Sessão 02/10/2026 (tarde) — Etapa 3: PDV + Caixa CONCLUÍDA
 

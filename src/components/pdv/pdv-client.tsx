@@ -319,7 +319,7 @@ export function PdvClient({
   ];
 
   return (
-    <div className="flex h-[calc(100vh-4.5rem)] flex-col gap-3">
+    <div className="flex h-auto flex-col gap-2 lg:h-[calc(100dvh-6.5rem)] lg:overflow-hidden">
       {/* Cabeçalho: KPIs + ações de caixa */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex-1">
@@ -385,9 +385,9 @@ export function PdvClient({
         </p>
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 lg:flex-row">
         {/* Esquerda: busca + grade de produtos */}
-        <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
           <div className="flex gap-3 rounded-xl bg-slate-900 p-3">
             <div className="w-24">
               <label
@@ -433,7 +433,7 @@ export function PdvClient({
                 type="button"
                 onClick={() => addItem(p.id)}
                 disabled={p.available <= 0}
-                className="flex h-[150px] flex-col justify-between rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-all hover:border-emerald-400 hover:shadow-md disabled:opacity-40"
+                className="flex h-[132px] flex-col justify-between rounded-xl border border-slate-200 bg-white p-3 text-left shadow-sm transition-all hover:border-emerald-400 hover:shadow-md disabled:opacity-40"
               >
                 <p className="line-clamp-2 text-xs font-bold text-slate-800">
                   {p.name}
@@ -494,7 +494,7 @@ export function PdvClient({
             </div>
           </div>
 
-          <div className="min-h-[140px] flex-1 space-y-2 overflow-y-auto bg-slate-50 p-2">
+          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto bg-slate-50 p-2">
             {cart.map((item) => (
               <div
                 key={item.productId}
@@ -543,7 +543,7 @@ export function PdvClient({
             tabIndex={-1}
             className="rounded-b-xl bg-slate-900 p-3 text-white"
           >
-            <div className="mb-3 flex items-end justify-between">
+            <div className="mb-2 flex items-end justify-between">
               <span className="text-xs font-bold uppercase text-slate-400">
                 Total
               </span>
@@ -607,8 +607,14 @@ export function PdvClient({
               </label>
             )}
 
-            {paymentMethod === "DINHEIRO" && (
-              <div className="mb-2">
+            <div
+              className={
+                paymentMethod === "DINHEIRO"
+                  ? "mb-2 grid grid-cols-2 gap-2"
+                  : "mb-2"
+              }
+            >
+              {paymentMethod === "DINHEIRO" && (
                 <label htmlFor="pdv-recebido" className="block">
                   <span className="text-xs font-bold uppercase text-slate-400">
                     Recebido (R$)
@@ -619,18 +625,15 @@ export function PdvClient({
                     onChange={(e) => setReceivedInput(e.target.value)}
                     inputMode="decimal"
                     placeholder="0,00"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2 text-right text-lg font-bold text-white"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2 text-right text-base font-bold text-white"
                   />
+                  {troco?.ok && (
+                    <p className="mt-1 text-right text-xs font-bold text-emerald-400">
+                      Troco: {formatBRL(troco.trocoCents)}
+                    </p>
+                  )}
                 </label>
-                {troco?.ok && (
-                  <p className="mt-1 text-right text-sm font-bold text-emerald-400">
-                    Troco: {formatBRL(troco.trocoCents)}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="mb-2">
+              )}
               <label htmlFor="pdv-desconto" className="block">
                 <span className="text-xs font-bold uppercase text-slate-400">
                   Desconto do pedido (F4)
@@ -651,7 +654,7 @@ export function PdvClient({
               type="button"
               onClick={() => void finalizar()}
               disabled={busy || cart.length === 0 || !cash.open}
-              className="w-full rounded-lg bg-emerald-600 py-3 text-lg font-black uppercase shadow-lg hover:bg-emerald-500 disabled:opacity-50"
+              className="w-full rounded-lg bg-emerald-600 py-2.5 text-base font-black uppercase shadow-lg hover:bg-emerald-500 disabled:opacity-50"
             >
               {busy
                 ? "Processando..."
