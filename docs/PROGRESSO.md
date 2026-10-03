@@ -65,7 +65,12 @@ Decisões do usuário: **acesso explícito + herança + default amplo** ·
   definir estoque-alvo).
 
 ### ▶ PRÓXIMO PASSO
-1. Commit do Sprint 2 (com autorização) + deploy (Action aplica a 0009).
+1. ~~Commit do Sprint 2 + deploy~~ — **FEITO**: commit `5f7dcae` em
+   `origin/main`; Action "Migrations" verde (job `migrate` success);
+   **0009 aplicada no Neon produção** (migration id 10) — colunas
+   `type`/`parent_id`/`manager_user_id`, tabelas novas com RLS ENABLE+FORCE,
+   permissões `units.*` + backfill da matriz (3 tenants: ADMIN/GERENTE/
+   ESTOQUISTA 2, FINANCEIRO/VISUALIZADOR 1, VENDEDOR 0).
 2. Sprint 3 — E4 Movimentações: transferências com workflow (envio/recebimento)
    ao lado do fluxo simples, alinhado ao módulo `TRANSFERENCIAS`.
 3. Smoke autenticado do `/unidades` no dev/produção.
