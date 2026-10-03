@@ -117,7 +117,10 @@ receber) · **menu próprio `/transferencias`**.
   (RLS FORCE) fora de `withTenant` — corrigido.
 
 ### ▶ PRÓXIMO PASSO
-1. Commit do Sprint 3 (com autorização) + deploy (Action aplica a 0010).
+1. ~~Commit do Sprint 3 + deploy~~ — **FEITO**: commit `b0e9a0f` em
+   `origin/main`; Action "Migrations" verde (job `migrate` success);
+   **0010 aplicada no Neon produção** (migration id 11) — colunas de workflow
+   em `transfers`, `transfer_items` com RLS ENABLE+FORCE nas duas tabelas.
 2. Sprint 4 — E5 Lotes/validade + rastreio (etiquetas, alertas de vencimento)
    e depois E7 Matriz→Postos / E8 Reposição.
 3. Smoke autenticado pendente: `/unidades` e `/transferencias` (2FA).
