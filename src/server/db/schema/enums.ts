@@ -112,3 +112,9 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "CANCELED",
   "SUSPENDED",
 ]);
+
+export const warehouseTypeEnum = pgEnum("warehouse_type", [
+  "MATRIZ",
+  "FILIAL",
+  "POSTO",
+]);

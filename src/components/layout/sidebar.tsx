@@ -26,6 +26,12 @@ function buildItems(
     },
     { label: "Estoque", module: "ESTOQUE", href: "/estoque" },
     {
+      label: "Unidades",
+      module: "MATRIZ_POSTOS",
+      href: permissions.includes("units.view") ? "/unidades" : null,
+      phase: "sem acesso",
+    },
+    {
       label: "Vendas",
       module: "VENDAS",
       href: permissions.includes("sales.view") ? "/vendas" : null,

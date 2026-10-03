@@ -1,8 +1,74 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 03/10/2026. Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 03/10/2026 (parte 2). Estado salvo para retomar a sessão seguinte.
 
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`).
+
+## Sessão 03/10/2026 (parte 2) — Sprint 1 commitado + Sprint 2 (E3 Unidades)
+
+### Sprint 1 (E2 Núcleo SaaS) — COMMITADO e em produção
+- Commit **`c708f19`** → push `origin/main`; Action **"Migrations"** verde
+  (job `migrate` success) — **0008 aplicada no Neon produção** (`tiny-dew-43682715`,
+  migration id 9): 13 módulos no catálogo com UTF-8 correto, backfill ok
+  (3 empresas × 13 módulos, assinaturas ACTIVE).
+- Fix antes do commit: `drizzle/0008_modules_billing.sql` tinha mojibake nos
+  comentários e nas strings do catálogo (encoding corrompido no write) —
+  reescrito em UTF-8; produção confirmou acentos corretos.
+
+### Sprint 2 — E3 Unidades CONCLUÍDO
+Decisões do usuário: **acesso explícito + herança + default amplo** ·
+**escopo "tudo de uma vez"** · **UI em menu próprio `/unidades`**.
+
+- **Migration `0009_units_hierarchy.sql`** (à mão + journal manual): enum
+  `warehouse_type` (MATRIZ/FILIAL/POSTO); `warehouses` + `type` (default
+  MATRIZ), `parent_id` (FK auto-ref `(tenant_id, parent_id)` padrão categories),
+  `manager_user_id`; tabelas `warehouse_product_targets` (min/max/reorder_point
+  numeric(14,3), unique por unidade+produto) e `warehouse_members` (acesso
+  explícito) — RLS ENABLE+FORCE + grants 0005; permissões novas `units.view`/
+  `units.manage` com backfill de `role_permissions` para tenants existentes.
+- **Regras puras** `src/server/modules/unidades/warehouse-rules.ts` (TDD):
+  `assertUnitHierarchy` (MATRIZ é raiz; POSTO é folha; sem ciclo/auto-ref;
+  pai deve existir), `validateUnitTarget` (negativos, min ≤ max, reorder ≤ max),
+  `expandMemberAccess` (sem vínculos = todas; com vínculos = próprias +
+  descendentes recursivos), `selectDefaultWarehouse` (preferir `isDefault`,
+  senão menor código). `tests/unit/warehouse-rules.test.ts` (**16 testes**).
+- **Service** `warehouse.service.ts`: CRUD (`createUnit`/`updateUnit`/
+  `deleteUnit` — soft delete, protege default e pais com filhas), membros
+  (`setUnitMembers`/`listUnitMembers`), estoque-alvo (`upsertUnitTarget`/
+  `deleteUnitTarget`/`listUnitTargets`), `accessibleWarehouseIds` (null = sem
+  restrição; ADMIN sempre; lista = herança), `assertWarehouseAccessible`,
+  `defaultWarehouseId`, `getUnitDetail` — tudo com `audit()` na transação.
+- **Actions** `src/actions/unidades.ts` (6): `_criarUnidade`, `_atualizarUnidade`,
+  `_apagarUnidade`, `_salvarMembros`, `_salvarAlvo`, `_apagarAlvo` —
+  `units.manage` + `requireModule("MATRIZ_POSTOS")` + Zod com `fieldErrors`.
+- **UI** `/unidades` (lista com tipo/pai/responsável/padrão), `/unidades/nova`,
+  `/unidades/[id]` (dados + acesso de usuários + estoque-alvo por produto);
+  componentes `unidade-form`, `membros-form`, `alvo-form`, `tipo-badge`;
+  sidebar ganha **Unidades** (módulo `MATRIZ_POSTOS` + `units.view`).
+- **Filtros por unidade acessível**: `loadSaleFormData`/`loadPurchaseFormData`
+  aceitam `allowedWarehouseIds`; páginas de venda/compra (nova+editar) e
+  `/estoque` (saldos, depósitos, histórico, contador) filtram por acesso;
+  **PDV**: `getPdvSettings` agora usa `selectDefaultWarehouse` (corrige o bug
+  de pegar "a primeira warehouse") respeitando acesso; `checkoutPdv` valida
+  `assertWarehouseAccessible`.
+- **Permissões**: `units.view`/`units.manage` no catálogo; matriz — ADMIN/GERENTE
+  ambos, ESTOQUISTA ambos, FINANCEIRO só view, VENDEDOR nada, VISUALIZADOR
+  view (via `viewOnly`).
+- **Testes**: unit **300/300 (17 suítes)** · integração **115/115 (12 suítes)**
+  (+`units.test.ts` 8 testes: hierarquia completa, ciclos/código duplicado,
+  proteção da default/filhas, posto A não vê posto B, herança filial→postos,
+  RLS A≠B em unidades/membros/alvos, estoque-alvo upsert/validação, RBAC).
+  Typecheck ✅ · build ✅ (rotas `/unidades*`).
+- **Smoke parcial** (dev): `/unidades` e `/unidades/nova` respondem 307 →
+  /login sem sessão (guard OK). **Smoke autenticado pendente** (login exige
+  2FA — validar manualmente: criar filial/posto, marcar acesso por usuário,
+  definir estoque-alvo).
+
+### ▶ PRÓXIMO PASSO
+1. Commit do Sprint 2 (com autorização) + deploy (Action aplica a 0009).
+2. Sprint 3 — E4 Movimentações: transferências com workflow (envio/recebimento)
+   ao lado do fluxo simples, alinhado ao módulo `TRANSFERENCIAS`.
+3. Smoke autenticado do `/unidades` no dev/produção.
 
 ## Sessão 03/10/2026 — PROMPT MESTRE aplicado: diagnóstico + Sprint 1 (E2 Núcleo SaaS)
 

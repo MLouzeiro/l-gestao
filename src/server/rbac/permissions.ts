@@ -30,6 +30,8 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     "users.view",
     "reports.view",
     "audit.view",
+    "units.view",
+    "units.manage",
   ],
   FINANCEIRO: [
     "products.view",
@@ -41,6 +43,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     "finance.manage",
     "finance.payments",
     "reports.view",
+    "units.view",
   ],
   ESTOQUISTA: [
     "products.view",
@@ -52,6 +55,8 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     "purchases.view",
     "purchases.manage",
     "sales.view",
+    "units.view",
+    "units.manage",
   ],
   VENDEDOR: [
     "products.view",

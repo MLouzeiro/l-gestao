@@ -4,6 +4,7 @@ import { dateOnlyInput } from "@/lib/dates";
 import { formatPurchaseNumber } from "@/server/modules/compras/purchase-rules";
 import { getPurchaseDetail } from "@/server/modules/compras/purchase.service";
 import { loadPurchaseFormData } from "@/server/modules/compras/form-data";
+import { accessibleWarehouseIds } from "@/server/modules/unidades/warehouse.service";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
 import { CompraForm } from "@/components/compras/compra-form";
@@ -18,12 +19,22 @@ export default async function EditarCompraPage({
   const { id } = await params;
   if (!UUID.test(id)) notFound();
 
-  const { tenantId } = await requirePermission("purchases.manage");
+  const { session, tenantId, role } = await requirePermission(
+    "purchases.manage",
+  );
 
   const dados = await withTenant(tenantId, async (tx) => {
     const compra = await getPurchaseDetail(tx, tenantId, id);
     if (!compra) return null;
-    const form = await loadPurchaseFormData(tx, tenantId);
+    const allowedWarehouseIds = await accessibleWarehouseIds(
+      tx,
+      tenantId,
+      session.user.id,
+      role,
+    );
+    const form = await loadPurchaseFormData(tx, tenantId, {
+      allowedWarehouseIds,
+    });
     return { compra, form };
   });
 

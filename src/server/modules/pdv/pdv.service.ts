@@ -28,6 +28,11 @@ import {
 import { formatSaleNumber } from "@/server/modules/vendas/sales-rules";
 import { getOpenCash } from "./cash.service";
 import { requireModule } from "@/server/modules/tenancy/module.service";
+import {
+  accessibleWarehouseIds,
+  assertWarehouseAccessible,
+} from "@/server/modules/unidades/warehouse.service";
+import { selectDefaultWarehouse } from "@/server/modules/unidades/warehouse-rules";
 import { PdvError, validatePdvPayment } from "./pdv-rules";
 
 // Checkout do PDV: uma venda DRAFT → CONFIRMED → BILLED em UMA transação
@@ -68,6 +73,15 @@ export async function checkoutPdv(
   input: PdvCheckoutInput,
 ): Promise<PdvCheckoutResult> {
   await requireModule(tx, ctx.tenantId, "PDV");
+  if (ctx.userId) {
+    await assertWarehouseAccessible(
+      tx,
+      ctx.tenantId,
+      ctx.userId,
+      ctx.role,
+      input.warehouseId,
+    );
+  }
   const open = await getOpenCash(tx, ctx.tenantId);
   if (!open) throw new PdvError("Abra o caixa antes de vender.");
 
@@ -242,6 +256,7 @@ export type PdvSettings = {
 export async function getPdvSettings(
   tx: TenantTx,
   tenantId: string,
+  opts?: { userId?: string; role?: string },
 ): Promise<PdvSettings | null> {
   const [t] = await tx
     .select()
@@ -256,11 +271,9 @@ export async function getPdvSettings(
     .where(eq(tenantSettings.tenantId, tenantId))
     .limit(1);
 
-  const [w] = await tx
-    .select()
-    .from(warehouses)
-    .where(eq(warehouses.tenantId, tenantId))
-    .limit(1);
+  // Unidade operacional do PDV: preferir a default, respeitando o acesso
+  // do usuário (unidades permitidas) — nunca mais "a primeira da lista".
+  const w = await resolvePdvWarehouse(tx, tenantId, opts);
   if (!w) return null;
 
   return {
@@ -271,4 +284,37 @@ export async function getPdvSettings(
     warehouseId: w.id,
     warehouseName: w.name,
   };
+}
+
+async function resolvePdvWarehouse(
+  tx: TenantTx,
+  tenantId: string,
+  opts?: { userId?: string; role?: string },
+): Promise<{ id: string; name: string } | null> {
+  const rows = await tx
+    .select({
+      id: warehouses.id,
+      code: warehouses.code,
+      name: warehouses.name,
+      isDefault: warehouses.isDefault,
+    })
+    .from(warehouses)
+    .where(and(eq(warehouses.tenantId, tenantId), isNull(warehouses.deletedAt)));
+
+  let candidateRows = rows;
+  if (opts?.userId && opts?.role) {
+    const allowed = await accessibleWarehouseIds(
+      tx,
+      tenantId,
+      opts.userId,
+      opts.role,
+    );
+    if (allowed !== null) {
+      candidateRows = rows.filter((r) => allowed.includes(r.id));
+    }
+  }
+  const chosenId = selectDefaultWarehouse(candidateRows);
+  if (!chosenId) return null;
+  const w = candidateRows.find((r) => r.id === chosenId)!;
+  return { id: w.id, name: w.name };
 }

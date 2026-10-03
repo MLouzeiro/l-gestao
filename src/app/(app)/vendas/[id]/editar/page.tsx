@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatSaleNumber } from "@/server/modules/vendas/sales-rules";
 import { getSaleDetail } from "@/server/modules/vendas/sales.service";
 import { loadSaleFormData } from "@/server/modules/vendas/form-data";
+import { accessibleWarehouseIds } from "@/server/modules/unidades/warehouse.service";
 import { resolvePermissions } from "@/server/rbac/permissions";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
@@ -18,13 +19,19 @@ export default async function EditarVendaPage({
   const { id } = await params;
   if (!UUID.test(id)) notFound();
 
-  const { tenantId, role } = await requirePermission("sales.manage");
+  const { session, tenantId, role } = await requirePermission("sales.manage");
   const canDiscount = resolvePermissions(role).includes("sales.discount");
 
   const dados = await withTenant(tenantId, async (tx) => {
     const venda = await getSaleDetail(tx, tenantId, id);
     if (!venda) return null;
-    const form = await loadSaleFormData(tx, tenantId);
+    const allowedWarehouseIds = await accessibleWarehouseIds(
+      tx,
+      tenantId,
+      session.user.id,
+      role,
+    );
+    const form = await loadSaleFormData(tx, tenantId, { allowedWarehouseIds });
     return { venda, form };
   });
 

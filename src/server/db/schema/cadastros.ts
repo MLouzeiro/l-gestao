@@ -13,8 +13,9 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { productStatusEnum } from "./enums";
+import { productStatusEnum, warehouseTypeEnum } from "./enums";
 import { tenants } from "./tenancy";
+import { users } from "./auth";
 
 // Cadastros — RLS em todas as tabelas com tenant_id.
 
@@ -27,6 +28,13 @@ export const warehouses = pgTable(
       .references(() => tenants.id, { onDelete: "cascade" }),
     code: text("code").notNull(),
     name: text("name").notNull(),
+    type: warehouseTypeEnum("type").notNull().default("MATRIZ"),
+    // FK (tenant_id, parent_id) → warehouses: adicionada na migration custom
+    // (auto-referência circular não é suportada pela tipagem do Drizzle).
+    parentId: uuid("parent_id"),
+    managerUserId: uuid("manager_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     isDefault: boolean("is_default").notNull().default(false),
     address: jsonb("address"),
     createdAt: timestamp("created_at", {
@@ -48,6 +56,7 @@ export const warehouses = pgTable(
       .on(t.tenantId, t.code)
       .where(sql`deleted_at IS NULL`),
     index("warehouses_tenant_idx").on(t.tenantId),
+    index("warehouses_tenant_parent_idx").on(t.tenantId, t.parentId),
   ],
 );
 
@@ -300,5 +309,85 @@ export const productComponents = pgTable(
     }).onDelete("cascade"),
     uniqueIndex("product_components_uq").on(t.tenantId, t.kitId, t.componentId),
     index("product_components_tenant_idx").on(t.tenantId),
+  ],
+);
+
+// Estoque-alvo por unidade/produto (mínimo, máximo, ponto de reposição).
+export const warehouseProductTargets = pgTable(
+  "warehouse_product_targets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    warehouseId: uuid("warehouse_id").notNull(),
+    productId: uuid("product_id").notNull(),
+    minQty: numeric("min_qty", { precision: 14, scale: 3 }),
+    maxQty: numeric("max_qty", { precision: 14, scale: 3 }),
+    reorderPoint: numeric("reorder_point", { precision: 14, scale: 3 }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("warehouse_product_targets_tenant_id_uq").on(t.tenantId, t.id),
+    unique("warehouse_product_targets_wh_product_uq").on(
+      t.tenantId,
+      t.warehouseId,
+      t.productId,
+    ),
+    index("warehouse_product_targets_tenant_wh_idx").on(
+      t.tenantId,
+      t.warehouseId,
+    ),
+    foreignKey({
+      columns: [t.tenantId, t.warehouseId],
+      foreignColumns: [warehouses.tenantId, warehouses.id],
+      name: "warehouse_product_targets_warehouse_fk",
+    }),
+    foreignKey({
+      columns: [t.tenantId, t.productId],
+      foreignColumns: [products.tenantId, products.id],
+      name: "warehouse_product_targets_product_fk",
+    }),
+  ],
+);
+
+// Acesso explícito por usuário — sem linhas = acesso amplo por padrão;
+// com linhas, o usuário vê as próprias unidades + descendentes (herança).
+export const warehouseMembers = pgTable(
+  "warehouse_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    warehouseId: uuid("warehouse_id").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("warehouse_members_tenant_id_uq").on(t.tenantId, t.id),
+    unique("warehouse_members_wh_user_uq").on(
+      t.tenantId,
+      t.warehouseId,
+      t.userId,
+    ),
+    index("warehouse_members_user_idx").on(t.tenantId, t.userId),
+    foreignKey({
+      columns: [t.tenantId, t.warehouseId],
+      foreignColumns: [warehouses.tenantId, warehouses.id],
+      name: "warehouse_members_warehouse_fk",
+    }),
   ],
 );

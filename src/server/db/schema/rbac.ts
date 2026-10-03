@@ -134,4 +134,6 @@ export const permissionCatalog = [
   { key: "reports.view", module: "reports" },
   { key: "audit.view", module: "audit" },
   { key: "settings.manage", module: "settings" },
+  { key: "units.view", module: "units" },
+  { key: "units.manage", module: "units" },
 ] as const;

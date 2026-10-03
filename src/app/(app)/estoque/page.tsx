@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "@/server/db/client";
 import {
   products,
@@ -12,15 +12,28 @@ import {
 import { requirePermission } from "@/server/rbac/require-permission";
 import { resolvePermissions } from "@/server/rbac/permissions";
 import { withTenant } from "@/server/tenant/with-tenant";
+import { accessibleWarehouseIds } from "@/server/modules/unidades/warehouse.service";
 import { formatBRL, toCents } from "@/lib/money";
 import { MovimentacaoForm } from "@/components/estoque/movimentacao-form";
 import { ProdutoForm } from "@/components/estoque/produto-form";
 
 export default async function EstoquePage() {
-  const { tenantId, role } = await requirePermission("stock.view");
+  const { session, tenantId, role } = await requirePermission("stock.view");
   const canManage = resolvePermissions(role).includes("stock.manage");
 
   const data = await withTenant(tenantId, async (tx) => {
+    const allowed = await accessibleWarehouseIds(
+      tx,
+      tenantId,
+      session.user.id,
+      role,
+    );
+    const allowedCond = allowed
+      ? inArray(stockBalances.warehouseId, allowed)
+      : undefined;
+    const allowedMovCond = allowed
+      ? inArray(stockMovements.warehouseId, allowed)
+      : undefined;
     const saldos = await tx
       .select({
         productId: stockBalances.productId,
@@ -49,7 +62,11 @@ export default async function EstoquePage() {
         ),
       )
       .leftJoin(units, eq(units.id, products.unitId))
-      .where(eq(stockBalances.tenantId, tenantId))
+      .where(
+        allowed
+          ? and(eq(stockBalances.tenantId, tenantId), allowedCond)
+          : eq(stockBalances.tenantId, tenantId),
+      )
       .orderBy(products.name)
       .limit(500);
 
@@ -75,7 +92,11 @@ export default async function EstoquePage() {
       .select({ id: warehouses.id, name: warehouses.name })
       .from(warehouses)
       .where(
-        and(eq(warehouses.tenantId, tenantId), isNull(warehouses.deletedAt)),
+        and(
+          eq(warehouses.tenantId, tenantId),
+          isNull(warehouses.deletedAt),
+          allowed ? inArray(warehouses.id, allowed) : undefined,
+        ),
       )
       .orderBy(warehouses.name);
 
@@ -109,14 +130,22 @@ export default async function EstoquePage() {
         ),
       )
       .leftJoin(users, eq(users.id, stockMovements.userId))
-      .where(eq(stockMovements.tenantId, tenantId))
+      .where(
+        allowed
+          ? and(eq(stockMovements.tenantId, tenantId), allowedMovCond)
+          : eq(stockMovements.tenantId, tenantId),
+      )
       .orderBy(desc(stockMovements.occurredAt))
       .limit(20);
 
     const [cont] = await tx
       .select({ total: sql<number>`count(*)::int` })
       .from(stockMovements)
-      .where(eq(stockMovements.tenantId, tenantId));
+      .where(
+        allowed
+          ? and(eq(stockMovements.tenantId, tenantId), allowedMovCond)
+          : eq(stockMovements.tenantId, tenantId),
+      );
 
     const unidades = await tx
       .select({ key: units.key, name: units.name, decimals: units.decimals })

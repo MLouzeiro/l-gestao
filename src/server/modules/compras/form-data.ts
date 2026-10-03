@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { products, suppliers, warehouses } from "@/server/db/schema";
 import type { TenantTx } from "@/server/tenant/with-tenant";
 
@@ -22,6 +22,7 @@ export type PurchaseFormData = {
 export async function loadPurchaseFormData(
   tx: TenantTx,
   tenantId: string,
+  opts?: { allowedWarehouseIds?: string[] | null },
 ): Promise<PurchaseFormData> {
   const fornecedores = await tx
     .select({ id: suppliers.id, name: suppliers.name })
@@ -30,11 +31,21 @@ export async function loadPurchaseFormData(
     .orderBy(suppliers.name)
     .limit(300);
 
-  const depositos = await tx
-    .select({ id: warehouses.id, name: warehouses.name })
-    .from(warehouses)
-    .where(and(eq(warehouses.tenantId, tenantId), isNull(warehouses.deletedAt)))
-    .orderBy(warehouses.name);
+  const allowed = opts?.allowedWarehouseIds;
+  const depositos =
+    allowed && allowed.length === 0
+      ? []
+      : await tx
+          .select({ id: warehouses.id, name: warehouses.name })
+          .from(warehouses)
+          .where(
+            and(
+              eq(warehouses.tenantId, tenantId),
+              isNull(warehouses.deletedAt),
+              allowed ? inArray(warehouses.id, allowed) : undefined,
+            ),
+          )
+          .orderBy(warehouses.name);
 
   const produtos = await tx
     .select({

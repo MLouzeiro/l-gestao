@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import {
   customers,
   members,
@@ -32,12 +32,23 @@ export type SaleFormData = {
 export async function loadSaleFormData(
   tx: TenantTx,
   tenantId: string,
+  opts?: { allowedWarehouseIds?: string[] | null },
 ): Promise<SaleFormData> {
-  const depositos = await tx
-    .select({ id: warehouses.id, name: warehouses.name })
-    .from(warehouses)
-    .where(and(eq(warehouses.tenantId, tenantId), isNull(warehouses.deletedAt)))
-    .orderBy(warehouses.name);
+  const allowed = opts?.allowedWarehouseIds;
+  const depositos =
+    allowed && allowed.length === 0
+      ? []
+      : await tx
+          .select({ id: warehouses.id, name: warehouses.name })
+          .from(warehouses)
+          .where(
+            and(
+              eq(warehouses.tenantId, tenantId),
+              isNull(warehouses.deletedAt),
+              allowed ? inArray(warehouses.id, allowed) : undefined,
+            ),
+          )
+          .orderBy(warehouses.name);
 
   const produtos = await tx
     .select({

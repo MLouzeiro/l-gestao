@@ -3,15 +3,22 @@ import { resolvePermissions } from "@/server/rbac/permissions";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
 import { loadSaleFormData } from "@/server/modules/vendas/form-data";
+import { accessibleWarehouseIds } from "@/server/modules/unidades/warehouse.service";
 import { VendaForm } from "@/components/vendas/venda-form";
 
 export default async function NovaVendaPage() {
-  const { tenantId, role } = await requirePermission("sales.manage");
+  const { session, tenantId, role } = await requirePermission("sales.manage");
   const canDiscount = resolvePermissions(role).includes("sales.discount");
 
-  const form = await withTenant(tenantId, (tx) =>
-    loadSaleFormData(tx, tenantId),
-  );
+  const form = await withTenant(tenantId, async (tx) => {
+    const allowedWarehouseIds = await accessibleWarehouseIds(
+      tx,
+      tenantId,
+      session.user.id,
+      role,
+    );
+    return loadSaleFormData(tx, tenantId, { allowedWarehouseIds });
+  });
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

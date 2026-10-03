@@ -2,13 +2,22 @@ import Link from "next/link";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
 import { loadPurchaseFormData } from "@/server/modules/compras/form-data";
+import { accessibleWarehouseIds } from "@/server/modules/unidades/warehouse.service";
 import { CompraForm } from "@/components/compras/compra-form";
 
 export default async function NovaCompraPage() {
-  const { tenantId } = await requirePermission("purchases.manage");
-  const form = await withTenant(tenantId, (tx) =>
-    loadPurchaseFormData(tx, tenantId),
+  const { session, tenantId, role } = await requirePermission(
+    "purchases.manage",
   );
+  const form = await withTenant(tenantId, async (tx) => {
+    const allowedWarehouseIds = await accessibleWarehouseIds(
+      tx,
+      tenantId,
+      session.user.id,
+      role,
+    );
+    return loadPurchaseFormData(tx, tenantId, { allowedWarehouseIds });
+  });
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

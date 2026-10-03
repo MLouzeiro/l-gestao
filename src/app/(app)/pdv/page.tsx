@@ -14,7 +14,7 @@ import {
 import { PdvClient } from "@/components/pdv/pdv-client";
 
 export default async function PdvPage() {
-  const { tenantId, role } = await requirePermission("sales.view");
+  const { session, tenantId, role } = await requirePermission("sales.view");
 
   const pdvAtivo = await withTenant(tenantId, (tx) =>
     hasModule(tx, tenantId, "PDV"),
@@ -30,7 +30,10 @@ export default async function PdvPage() {
 
   const data = await withTenant(tenantId, async (tx) => {
     await requireModule(tx, tenantId, "PDV");
-    const settings = await getPdvSettings(tx, tenantId);
+    const settings = await getPdvSettings(tx, tenantId, {
+      userId: session.user.id,
+      role,
+    });
     if (!settings) return null;
     const [products, customers, cash] = await Promise.all([
       listPdvProducts(tx, tenantId, settings.warehouseId),
