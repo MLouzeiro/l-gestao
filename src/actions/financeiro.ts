@@ -95,7 +95,7 @@ export async function _registrarBaixa(
   if (!paidAt.ok) return { error: paidAt.error };
 
   try {
-    await withTenant(tenantId, (tx) =>
+    await withTenant(tenantId, userId, (tx) =>
       registerPayment(tx, { tenantId, userId }, parsed.data.accountId, {
         amountCents: amount.cents,
         interestCents: interest.cents,

@@ -36,13 +36,13 @@ export async function _buscarLotes(
   productId: string,
   warehouseId: string,
 ): Promise<LoteInfo[]> {
-  const { tenantId } = await requirePermission("stock.view");
+  const { tenantId, session } = await requirePermission("stock.view");
   const uuid = z.string().uuid();
   if (!uuid.safeParse(productId).success || !uuid.safeParse(warehouseId).success) {
     return [];
   }
 
-  return withTenant(tenantId, async (tx) => {
+  return withTenant(tenantId, session.user.id, async (tx) => {
     const rows = await tx
       .select({
         batchNumber: batches.batchNumber,
@@ -140,7 +140,7 @@ export async function _movimentar(
   }
 
   try {
-    await withTenant(tenantId, (tx) =>
+    await withTenant(tenantId, session.user.id, (tx) =>
       applyMovement(tx, {
         tenantId,
         type: d.type,
@@ -184,7 +184,7 @@ export async function _criarProduto(
   _prev: EstoqueFormState,
   formData: FormData,
 ): Promise<EstoqueFormState> {
-  const { tenantId } = await requirePermission("stock.manage");
+  const { tenantId, session } = await requirePermission("stock.manage");
 
   const parsed = produtoSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -204,7 +204,7 @@ export async function _criarProduto(
   }
 
   try {
-    await withTenant(tenantId, async (tx) => {
+    await withTenant(tenantId, session.user.id, async (tx) => {
       const [existing] = await tx
         .select({ id: products.id })
         .from(products)

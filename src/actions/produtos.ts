@@ -48,7 +48,7 @@ export async function _salvarProduto(
   _prev: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
-  const { tenantId } = await requirePermission("stock.manage");
+  const { tenantId, session } = await requirePermission("stock.manage");
 
   const id = String(formData.get("id") ?? "").trim();
   const raw = {
@@ -129,7 +129,7 @@ export async function _salvarProduto(
   }));
 
   try {
-    await withTenant(tenantId, async (tx) => {
+    await withTenant(tenantId, session.user.id, async (tx) => {
       const { productId } = id
         ? await updateProduct(tx, id, fields)
         : await createProduct(tx, fields);
@@ -154,12 +154,12 @@ export async function _excluirProduto(
   _prev: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
-  const { tenantId } = await requirePermission("stock.manage");
+  const { tenantId, session } = await requirePermission("stock.manage");
   const id = String(formData.get("id") ?? "").trim();
   if (!id) return { error: "Produto não encontrado." };
 
   try {
-    await withTenant(tenantId, (tx) => softDeleteProduct(tx, tenantId, id));
+    await withTenant(tenantId, session.user.id, (tx) => softDeleteProduct(tx, tenantId, id));
   } catch (err) {
     if (err instanceof ProductError) return { error: err.message };
     return { error: err instanceof Error ? err.message : "Falha ao excluir." };
@@ -176,14 +176,14 @@ export async function _criarCategoria(
   _prev: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
-  const { tenantId } = await requirePermission("stock.manage");
+  const { tenantId, session } = await requirePermission("stock.manage");
   const name = String(formData.get("name") ?? "");
   const parentId = String(formData.get("parentId") ?? "").trim();
   const check = nomeSchema.safeParse(name);
   if (!check.success) return { error: check.error.issues[0]?.message };
 
   try {
-    await withTenant(tenantId, (tx) =>
+    await withTenant(tenantId, session.user.id, (tx) =>
       createCategory(tx, { tenantId, name: check.data, parentId: parentId || null }),
     );
   } catch (err) {
@@ -198,13 +198,13 @@ export async function _criarMarca(
   _prev: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
-  const { tenantId } = await requirePermission("stock.manage");
+  const { tenantId, session } = await requirePermission("stock.manage");
   const name = String(formData.get("name") ?? "");
   const check = nomeSchema.safeParse(name);
   if (!check.success) return { error: check.error.issues[0]?.message };
 
   try {
-    await withTenant(tenantId, (tx) => createBrand(tx, { tenantId, name: check.data }));
+    await withTenant(tenantId, session.user.id, (tx) => createBrand(tx, { tenantId, name: check.data }));
   } catch (err) {
     if (err instanceof ProductError) return { error: err.message };
     return { error: err instanceof Error ? err.message : "Falha ao criar marca." };
@@ -224,7 +224,7 @@ export async function _criarFornecedor(
   _prev: ProdutoFormState,
   formData: FormData,
 ): Promise<ProdutoFormState> {
-  const { tenantId } = await requirePermission("stock.manage");
+  const { tenantId, session } = await requirePermission("stock.manage");
   const parsed = fornecedorSchema.safeParse({
     name: String(formData.get("name") ?? ""),
     document: String(formData.get("document") ?? ""),
@@ -234,7 +234,7 @@ export async function _criarFornecedor(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
   try {
-    await withTenant(tenantId, (tx) =>
+    await withTenant(tenantId, session.user.id, (tx) =>
       createSupplier(tx, {
         tenantId,
         name: parsed.data.name,

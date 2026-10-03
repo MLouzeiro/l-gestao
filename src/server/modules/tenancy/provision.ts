@@ -6,11 +6,13 @@ import {
   rolePermissions,
   roles,
   systemRoles,
+  tenants,
   tenantSettings,
   warehouses,
 } from "@/server/db/schema";
 import { ROLE_PERMISSIONS } from "@/server/rbac/permissions";
 import { withTenant } from "@/server/tenant/with-tenant";
+import { provisionModules } from "./module.service";
 
 export const ROLE_NAMES: Record<string, string> = {
   ADMIN: "Administrador",
@@ -40,6 +42,16 @@ export async function provisionTenant(tenantId: string): Promise<void> {
       .insert(tenantSettings)
       .values({ tenantId })
       .onConflictDoNothing();
+
+    // Módulos contratáveis (PROMPT MESTRE §35): preset do segmento + assinatura
+    const [tenantRow] = await tx
+      .select({ segment: tenants.segment })
+      .from(tenants)
+      .where(eq(tenants.id, tenantId))
+      .limit(1);
+    if (tenantRow) {
+      await provisionModules(tx, tenantId, tenantRow.segment);
+    }
 
     // Depósito padrão (Fase 6): toda empresa precisa de um depósito para
     // movimentar estoque. Idempotente (conflict = já existe).

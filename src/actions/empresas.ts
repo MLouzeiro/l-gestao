@@ -8,6 +8,8 @@ import { z } from "zod";
 import { auth } from "@/server/auth";
 import { db } from "@/server/db/client";
 import { members } from "@/server/db/schema";
+import { withTenant } from "@/server/tenant/with-tenant";
+import { audit } from "@/server/audit/log";
 
 async function requireSession() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -46,6 +48,7 @@ export async function _criarEmpresa(
   const base = slugify(parsed.data.name);
   const slug = `${base}-${Math.random().toString(36).slice(2, 6)}`;
 
+  let novoTenantId = "";
   try {
     // Cria a empresa (plugin) → hook provisiona settings/papéis.
     // O create grava a empresa ativa no banco mas NÃO atualiza o cookie de
@@ -54,6 +57,7 @@ export async function _criarEmpresa(
       headers: await headers(),
       body: { name: parsed.data.name, slug },
     });
+    novoTenantId = created.id;
     await auth.api.setActiveOrganization({
       headers: await headers(),
       body: { organizationId: created.id },
@@ -61,6 +65,15 @@ export async function _criarEmpresa(
   } catch {
     return { error: "Não foi possível criar a empresa. Tente outro nome." };
   }
+
+  await withTenant(novoTenantId, session.user.id, async (tx) => {
+    await audit(tx, {
+      action: "CRIACAO_EMPRESA",
+      module: "empresas",
+      entityType: "tenant",
+      entityId: novoTenantId,
+    });
+  });
 
   revalidatePath("/", "layout");
   redirect("/painel");

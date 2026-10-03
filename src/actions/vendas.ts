@@ -114,14 +114,14 @@ export async function _salvarVenda(
 
   try {
     if (saleId) {
-      await withTenant(perm.ctx.tenantId, (tx) =>
+      await withTenant(perm.ctx.tenantId, perm.ctx.userId, (tx) =>
         updateSale(tx, perm.ctx, saleId, d),
       );
       revalidateVendas(saleId);
       return { ok: true, message: "Venda salva.", saleId };
     }
 
-    const result = await withTenant(perm.ctx.tenantId, (tx) =>
+    const result = await withTenant(perm.ctx.tenantId, perm.ctx.userId, (tx) =>
       createSale(tx, perm.ctx, d),
     );
     revalidateVendas(result.saleId);
@@ -148,7 +148,7 @@ export async function _apagarVenda(
   if (!saleId) return { error: "Venda inválida." };
 
   try {
-    await withTenant(perm.ctx.tenantId, (tx) =>
+    await withTenant(perm.ctx.tenantId, perm.ctx.userId, (tx) =>
       deleteSale(tx, perm.ctx, saleId),
     );
     revalidateVendas(saleId);
@@ -171,7 +171,7 @@ export async function _confirmarVenda(
   if (!saleId) return { error: "Venda inválida." };
 
   try {
-    await withTenant(perm.ctx.tenantId, (tx) =>
+    await withTenant(perm.ctx.tenantId, perm.ctx.userId, (tx) =>
       confirmSale(tx, perm.ctx, saleId),
     );
     revalidateVendas(saleId);
@@ -194,7 +194,7 @@ export async function _cancelarVenda(
   if (!saleId) return { error: "Venda inválida." };
 
   try {
-    await withTenant(perm.ctx.tenantId, (tx) =>
+    await withTenant(perm.ctx.tenantId, perm.ctx.userId, (tx) =>
       cancelSale(tx, perm.ctx, saleId),
     );
     revalidateVendas(saleId);
@@ -217,7 +217,7 @@ export async function _faturarVenda(
   if (!saleId) return { error: "Venda inválida." };
 
   try {
-    await withTenant(perm.ctx.tenantId, (tx) =>
+    await withTenant(perm.ctx.tenantId, perm.ctx.userId, (tx) =>
       billSale(tx, perm.ctx, saleId),
     );
     revalidateVendas(saleId);

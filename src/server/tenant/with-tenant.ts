@@ -13,7 +13,7 @@ export type TenantTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export async function withTenant<T>(
   tenantId: string,
-  userId: string | null,
+  userId: string | null | undefined,
   fn: (tx: TenantTx) => Promise<T>,
 ): Promise<T>;
 export async function withTenant<T>(
@@ -22,7 +22,7 @@ export async function withTenant<T>(
 ): Promise<T>;
 export async function withTenant<T>(
   tenantId: string,
-  userIdOrFn: string | null | ((tx: TenantTx) => Promise<T>),
+  userIdOrFn: string | null | undefined | ((tx: TenantTx) => Promise<T>),
   fnMaybe?: (tx: TenantTx) => Promise<T>,
 ): Promise<T> {
   const fn = typeof userIdOrFn === "function" ? userIdOrFn : fnMaybe!;

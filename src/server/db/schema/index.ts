@@ -1,6 +1,7 @@
 export * from "./enums";
 export * from "./auth";
 export * from "./tenancy";
+export * from "./modules";
 export * from "./rbac";
 export * from "./cadastros";
 export * from "./estoque";

@@ -107,7 +107,7 @@ export async function _salvarCompra(
 
   try {
     if (d.purchaseId) {
-      await withTenant(perm.tenantId, (tx) =>
+      await withTenant(perm.tenantId, perm.userId, (tx) =>
         updatePurchase(
           tx,
           { tenantId: perm.tenantId, userId: perm.userId },
@@ -118,7 +118,7 @@ export async function _salvarCompra(
       revalidateCompras(d.purchaseId);
       return { ok: true, purchaseId: d.purchaseId, message: "Nota atualizada." };
     }
-    const created = await withTenant(perm.tenantId, (tx) =>
+    const created = await withTenant(perm.tenantId, perm.userId, (tx) =>
       createPurchase(tx, { tenantId: perm.tenantId, userId: perm.userId }, d),
     );
     revalidateCompras(created.purchaseId);
@@ -146,7 +146,7 @@ async function acao(
   if (!purchaseId) return { error: "Compra inválida." };
 
   try {
-    await withTenant(perm.tenantId, (tx) =>
+    await withTenant(perm.tenantId, perm.userId, (tx) =>
       fn(tx, { tenantId: perm.tenantId, userId: perm.userId }, purchaseId),
     );
     revalidateCompras(purchaseId);

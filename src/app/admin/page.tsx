@@ -43,11 +43,19 @@ export default async function AdminPage() {
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-slate-900">
-          Administração — Equipe
+          Administra��ǜo �?" Equipe
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Membros, papéis e convites desta empresa.
+          Membros, papǸis e convites desta empresa.
           {!canManage && " (leitura apenas)"}
+        </p>
+        <p className="mt-2">
+          <a
+            href="/admin/modulos"
+            className="text-sm font-semibold text-indigo-600 hover:underline"
+          >
+            Gerenciar módulos contratados →
+          </a>
         </p>
       </div>
       <EquipePanel

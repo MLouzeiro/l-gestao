@@ -5,6 +5,8 @@ export const tenantSegmentEnum = pgEnum("tenant_segment", [
   "FARMACIA",
   "LABORATORIO",
   "SAUDE",
+  "LANCHONETE",
+  "FRIGORIFICO",
   "OUTRO",
 ]);
 
@@ -101,4 +103,12 @@ export const cashMovementTypeEnum = pgEnum("cash_movement_type", [
   "SUPRIMENTO",
   "SANGRIA",
   "FECHAMENTO",
+]);
+
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "TRIAL",
+  "ACTIVE",
+  "PAST_DUE",
+  "CANCELED",
+  "SUSPENDED",
 ]);

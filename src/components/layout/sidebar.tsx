@@ -6,48 +6,59 @@ import { usePathname } from "next/navigation";
 type Item = {
   label: string;
   href: string | null;
+  module?: string;
   phase?: string;
 };
 
 // A sidebar só esconde o acesso (cosmético) — quem decide é o servidor.
-function buildItems(permissions: readonly string[]): Item[] {
+// Itens com `module` só aparecem se o módulo estiver contratado (§35).
+function buildItems(
+  permissions: readonly string[],
+  modules: readonly string[],
+): Item[] {
   return [
     { label: "Painel", href: "/painel" },
     {
       label: "Dashboard",
+      module: "INDICADORES",
       href: permissions.includes("reports.view") ? "/dashboard" : null,
       phase: "sem acesso",
     },
-    { label: "Estoque", href: "/estoque" },
+    { label: "Estoque", module: "ESTOQUE", href: "/estoque" },
     {
       label: "Vendas",
+      module: "VENDAS",
       href: permissions.includes("sales.view") ? "/vendas" : null,
       phase: "sem acesso",
     },
     {
       label: "PDV",
+      module: "PDV",
       href: permissions.includes("sales.manage") ? "/pdv" : null,
       phase: "sem acesso",
     },
     {
       label: "Compras",
+      module: "COMPRAS",
       href: permissions.includes("purchases.view") ? "/compras" : null,
       phase: "sem acesso",
     },
-    { label: "Financeiro", href: permissions.includes("finance.view") ? "/financeiro" : null, phase: "sem acesso" },
-    { label: "Relatórios", href: permissions.includes("reports.view") ? "/relatorios" : null, phase: "sem acesso" },
+    { label: "Financeiro", module: "FINANCEIRO", href: permissions.includes("finance.view") ? "/financeiro" : null, phase: "sem acesso" },
+    { label: "Relatórios", module: "RELATORIOS", href: permissions.includes("reports.view") ? "/relatorios" : null, phase: "sem acesso" },
     { label: "Administração", href: "/admin" },
     { label: "Empresas", href: "/empresas" },
-  ];
+  ].filter((item) => !item.module || modules.includes(item.module));
 }
 
 export function AppSidebar({
   permissions,
+  modules,
 }: {
   permissions: readonly string[];
+  modules: readonly string[];
 }) {
   const pathname = usePathname();
-  const items = buildItems(permissions);
+  const items = buildItems(permissions, modules);
 
   return (
     <aside className="sidebar-rail hidden w-56 shrink-0 border-r border-slate-200 bg-white md:block">

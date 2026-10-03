@@ -8,6 +8,8 @@ import { z } from "zod";
 import { auth } from "@/server/auth";
 import { systemRoles } from "@/server/db/schema";
 import { requirePermission } from "@/server/rbac/require-permission";
+import { withTenant } from "@/server/tenant/with-tenant";
+import { audit } from "@/server/audit/log";
 
 // Equipe + convites (M1 / Fase 5).
 // Toda ação sensível passa por requirePermission; a regra do último ADMIN é
@@ -44,7 +46,7 @@ export async function _trocarPapel(
   _prev: EquipeFormState,
   formData: FormData,
 ): Promise<EquipeFormState> {
-  const { tenantId } = await requirePermission("users.manage");
+  const { tenantId, session } = await requirePermission("users.manage");
   const memberId = String(formData.get("memberId") ?? "");
   const role = String(formData.get("role") ?? "");
   if (!memberId) return { error: "Membro não encontrado." };
@@ -61,6 +63,15 @@ export async function _trocarPapel(
       error: apiErrorMessage(err, "Não foi possível alterar o papel."),
     };
   }
+  await withTenant(tenantId, session.user.id, async (tx) => {
+    await audit(tx, {
+      action: "ALTERACAO_PERMISSAO",
+      module: "equipe",
+      entityType: "member",
+      entityId: memberId,
+      after: { role: parsed.data },
+    });
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -69,7 +80,7 @@ export async function _removerMembro(
   _prev: EquipeFormState,
   formData: FormData,
 ): Promise<EquipeFormState> {
-  const { tenantId } = await requirePermission("users.manage");
+  const { tenantId, session } = await requirePermission("users.manage");
   const memberId = String(formData.get("memberId") ?? "");
   if (!memberId) return { error: "Membro não encontrado." };
 
@@ -81,6 +92,14 @@ export async function _removerMembro(
   } catch (err) {
     return { error: apiErrorMessage(err, "Não foi possível remover.") };
   }
+  await withTenant(tenantId, session.user.id, async (tx) => {
+    await audit(tx, {
+      action: "REMOCAO_USUARIO",
+      module: "equipe",
+      entityType: "member",
+      entityId: memberId,
+    });
+  });
   revalidatePath("/", "layout");
   return { ok: true };
 }
@@ -89,7 +108,7 @@ export async function _criarConvite(
   _prev: EquipeFormState,
   formData: FormData,
 ): Promise<EquipeFormState> {
-  const { tenantId } = await requirePermission("users.manage");
+  const { tenantId, session } = await requirePermission("users.manage");
   const parsed = conviteSchema.safeParse({
     email: formData.get("email"),
     role: formData.get("role"),
@@ -115,6 +134,15 @@ export async function _criarConvite(
     if (process.env.NODE_ENV !== "production") {
       console.log(`[convite] ${parsed.data.email} → ${link}`);
     }
+    await withTenant(tenantId, session.user.id, async (tx) => {
+      await audit(tx, {
+        action: "CONVITE_USUARIO",
+        module: "equipe",
+        entityType: "invitation",
+        entityId: invitation.id,
+        after: { email: parsed.data.email, role: parsed.data.role },
+      });
+    });
     revalidatePath("/", "layout");
     return { ok: true, link };
   } catch (err) {
@@ -125,13 +153,21 @@ export async function _criarConvite(
 }
 
 export async function _cancelarConvite(formData: FormData): Promise<void> {
-  const { tenantId } = await requirePermission("users.manage");
+  const { tenantId, session } = await requirePermission("users.manage");
   const invitationId = String(formData.get("invitationId") ?? "");
   if (!invitationId) return;
   try {
     await auth.api.cancelInvitation({
       headers: await headers(),
       body: { invitationId },
+    });
+    await withTenant(tenantId, session.user.id, async (tx) => {
+      await audit(tx, {
+        action: "CANCELAMENTO_CONVITE",
+        module: "equipe",
+        entityType: "invitation",
+        entityId: invitationId,
+      });
     });
   } catch (err) {
     console.error("[convite] cancelar falhou:", apiErrorMessage(err, "?"));
@@ -146,22 +182,35 @@ export async function _aceitarConvite(
   formData: FormData,
 ): Promise<EquipeFormState> {
   // Convite: aceitante pode ainda não ter membership — só exige sessão
-  await getSessionOrLogin();
+  const session = await getSessionOrLogin();
   const parsed = aceitarSchema.safeParse({
     invitationId: formData.get("invitationId"),
   });
   if (!parsed.success) return { error: "Convite inválido." };
 
+  let organizationIdAceite = "";
   try {
-    await auth.api.acceptInvitation({
+    const aceite = await auth.api.acceptInvitation({
       headers: await headers(),
       body: { invitationId: parsed.data.invitationId },
     });
+    organizationIdAceite = aceite.invitation.organizationId;
   } catch (err) {
     return {
       error: apiErrorMessage(err, "Não foi possível aceitar o convite."),
     };
   }
+  if (!organizationIdAceite) {
+    return { error: "Não foi possível aceitar o convite." };
+  }
+  await withTenant(organizationIdAceite, session.user.id, async (tx) => {
+    await audit(tx, {
+      action: "ACEITE_CONVITE",
+      module: "equipe",
+      entityType: "invitation",
+      entityId: parsed.data.invitationId,
+    });
+  });
   revalidatePath("/", "layout");
   redirect("/empresas");
 }

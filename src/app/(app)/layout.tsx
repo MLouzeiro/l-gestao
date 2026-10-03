@@ -5,6 +5,8 @@ import { auth } from "@/server/auth";
 import { db } from "@/server/db/client";
 import { members, tenants } from "@/server/db/schema";
 import { resolvePermissions } from "@/server/rbac/permissions";
+import { listTenantModuleKeys } from "@/server/modules/tenancy/module.service";
+import { withTenant } from "@/server/tenant/with-tenant";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
@@ -43,9 +45,18 @@ export default async function AppLayout({
     redirect("/configurar-2fa");
   }
 
+  // Módulos contratados (PROMPT MESTRE §35) — o menu aparece conforme o
+  // contrato da empresa; o servidor continua decidindo o acesso real.
+  const moduleKeys = await withTenant(tenantId, (tx) =>
+    listTenantModuleKeys(tx, tenantId),
+  );
+
   return (
     <div className="flex min-h-screen bg-slate-100">
-      <AppSidebar permissions={resolvePermissions(member.role)} />
+      <AppSidebar
+        permissions={resolvePermissions(member.role)}
+        modules={moduleKeys}
+      />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="app-header sticky top-0 z-10 flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
           <div className="flex min-w-0 items-center gap-2">

@@ -10,6 +10,7 @@ import type { TenantTx } from "@/server/tenant/with-tenant";
 import { fromCents, toCents } from "@/lib/money";
 import { nextCounter } from "@/server/db/counter";
 import { createPayables } from "@/server/modules/financeiro/financial.service";
+import { audit } from "@/server/audit/log";
 import {
   applyMovement,
   MovementError,
@@ -224,6 +225,22 @@ export async function createPurchase(
 
   await writeItems(tx, ctx.tenantId, entry.id, input.items);
 
+  await audit(tx, {
+    action: "CRIACAO_COMPRA",
+    module: "compras",
+    entityType: "purchase_entry",
+    entityId: entry.id,
+    after: {
+      status: "OPEN",
+      supplierId: input.supplierId,
+      totalCents,
+      installments: input.installments,
+      itemCount: input.items.length,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
   return { purchaseId: entry.id, number, totalCents };
 }
 
@@ -274,6 +291,28 @@ export async function updatePurchase(
       ),
     );
 
+  await audit(tx, {
+    action: "ALTERACAO_COMPRA",
+    module: "compras",
+    entityType: "purchase_entry",
+    entityId: purchaseId,
+    before: {
+      status: entry.status,
+      totalCents: toCents(entry.total),
+      installments: entry.installments,
+      warehouseId: entry.warehouseId,
+    },
+    after: {
+      status: entry.status,
+      supplierId: input.supplierId,
+      totalCents,
+      installments: input.installments,
+      warehouseId: input.warehouseId,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
   return { purchaseId, totalCents };
 }
 
@@ -302,6 +341,21 @@ export async function deletePurchase(
         eq(purchaseEntries.id, purchaseId),
       ),
     );
+
+  await audit(tx, {
+    action: "EXCLUSAO_COMPRA",
+    module: "compras",
+    entityType: "purchase_entry",
+    entityId: purchaseId,
+    before: {
+      status: entry.status,
+      number: entry.number,
+      totalCents: toCents(entry.total),
+      installments: entry.installments,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
 
   return { purchaseId };
 }
@@ -377,6 +431,17 @@ export async function confirmPurchase(
       ),
     );
 
+  await audit(tx, {
+    action: "CONFIRMACAO_COMPRA",
+    module: "compras",
+    entityType: "purchase_entry",
+    entityId: purchaseId,
+    before: { status: entry.status },
+    after: { status: "CONFIRMED", movements, payables: ids.length },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
+
   return { purchaseId, movements, payables: ids.length };
 }
 
@@ -398,6 +463,17 @@ export async function cancelPurchase(
         eq(purchaseEntries.id, purchaseId),
       ),
     );
+
+  await audit(tx, {
+    action: "CANCELAMENTO_COMPRA",
+    module: "compras",
+    entityType: "purchase_entry",
+    entityId: purchaseId,
+    before: { status: entry.status },
+    after: { status: "CANCELLED" },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
 
   return { purchaseId };
 }

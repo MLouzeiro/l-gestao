@@ -9,6 +9,8 @@ import {
   warehouses,
 } from "@/server/db/schema";
 import type { TenantTx } from "@/server/tenant/with-tenant";
+import { audit } from "@/server/audit/log";
+import { auditActionForMovement } from "@/server/modules/auditoria/audit-rules";
 import { fromCents } from "@/lib/money";
 import {
   isBatchExpired,
@@ -345,6 +347,27 @@ export async function applyMovement(
       notes: input.notes ?? null,
     })
     .returning({ id: stockMovements.id });
+
+  await audit(tx, {
+    action: auditActionForMovement(input.type),
+    module: "estoque",
+    entityType: "stock_movement",
+    entityId: movement.id,
+    after: {
+      type: input.type,
+      productId: input.productId,
+      warehouseId: input.warehouseId,
+      batchNumber: batchNumber || null,
+      quantity: input.quantity,
+      unitCostCents,
+      totalCents,
+      referenceType: input.referenceType ?? null,
+      referenceId: input.referenceId ?? null,
+      reason: input.reason ?? null,
+    },
+    tenantId: input.tenantId,
+    userId: input.userId ?? null,
+  });
 
   return { movementId: movement.id };
 }

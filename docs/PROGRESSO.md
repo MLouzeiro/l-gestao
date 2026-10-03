@@ -1,9 +1,53 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 02/10/2026 (noite). Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 03/10/2026. Estado salvo para retomar a sessão seguinte.
 
-**Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`;
-conceito: L de Louzeiro + gestão — estoque · vendas · financeiro).
+**Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`).
+
+## Sessão 03/10/2026 — PROMPT MESTRE aplicado: diagnóstico + Sprint 1 (E2 Núcleo SaaS)
+
+### PROMPT MESTRE — diagnóstico aprovado (§50/§51)
+- Diagnóstico completo entregue (arquitetura, banco 40 tabelas vs requisitos,
+  gaps, impactos) com decisões do usuário: **E2 Núcleo SaaS primeiro** ·
+  **postos = warehouses estendidas** · **workflow de transferência ao lado do
+  fluxo simples** · **escopo = núcleo + laboratório** (alimentação fica p/ depois).
+- Sequência: E2 Núcleo SaaS → E3 Unidades → E4 Movimentações → E5 Lotes/
+  validade+rastreio → E6 Transferências workflow → E7 Matriz→Postos →
+  E8 Reposição → E9 Auditoria global+Central → E10 Alertas → E11-12
+  Indicadores → E13 Relatórios → E14-16 Testes/Segurança/Docs.
+- Pré-condição resolvida: WIP da sessão de auditoria consertado no mínimo
+  (`equipe.ts`: `aceite` fora de escopo; overload do `withTenant` não aceitava
+  `userId` undefined) — typecheck 100% verde, intenção dela preservada.
+
+### Sprint 1 — E2 Núcleo SaaS CONCLUÍDO
+- **Migration `0008_modules_billing.sql`**: `modules` (catálogo global 13
+  módulos), `plan_modules`, `tenant_modules` (RLS), `subscriptions` (RLS,
+  TRIAL no provisionamento), `tenant_contract_versions` (RLS); enum
+  `subscription_status`; `tenant_segment` + LANCHONETE/FRIGORIFICO; backfill
+  (empresas existentes ganham todos os módulos + assinatura ACTIVE — nada
+  quebra, §2). Grants padrão 0005 + journal manual.
+- **Backend**: `module-rules.ts` (presets por segmento, catálogo — puro),
+  `module.service.ts` (`requireModule`/`hasModule`/`listTenantModuleKeys`/
+  `setTenantModule` com `audit()` MODULO_ATIVADO/DESATIVADO,
+  `provisionModules` idempotente); `provisionTenant` passa a provisionar
+  módulos+assinatura por segmento.
+- **Frontend**: menu dinâmico na sidebar (itens só de módulos contratados);
+  `/admin/modulos` (catálogo + assinatura + toggle) com `_alternarModulo`
+  (`settings.manage` + Zod); link em `/admin`; **gate de servidor** no PDV
+  (página + `checkoutPdv`) exemplar do padrão `requireModule`.
+- **Testes**: `module-rules.test.ts` (8 unit) + `modules.test.ts` (9 integração:
+  preset por segmento, TRIAL, requireModule recusa, RLS de leitura E escrita,
+  catálogo global). Totais: **unit 283/283 (16 suítes)** ·
+  **integração 107/107 (11 suítes)** · typecheck ✅.
+- **Smoke**: `/admin/modulos` lista 13 módulos + assinatura; desativar PDV →
+  `/pdv` mostra "Módulo PDV não está contratado…" e **menu some "PDV"**;
+  reativar → volta (200). Screenshot `admin-modulos.png`.
+
+### ▶ PRÓXIMO PASSO
+1. Commit do Sprint 1 (com autorização) + deploy (Action aplica a 0008).
+2. Sprint 2 — E3 Unidades: `warehouses` + tipo (MATRIZ/FILIAL/POSTO), pai,
+   responsável; estoque-alvo por unidade (min/máx/ponto de reposição);
+   permissão de acesso por unidade (posto não vê outro posto).
 
 ## Sessão 02/10/2026 (noite) — Deploy produção + PDV sem barra de rolagem
 

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { PermissionError, resolvePermissions } from "@/server/rbac/permissions";
 import { requirePermission } from "@/server/rbac/require-permission";
+import { ModuleError } from "@/server/modules/tenancy/module.service";
 import { withTenant } from "@/server/tenant/with-tenant";
 import {
   addSangria,
@@ -78,7 +79,11 @@ function fail<T>(error: string): PdvActionResult<T> {
 }
 
 function unexpected<T>(err: unknown, what: string): PdvActionResult<T> {
-  if (err instanceof PdvError || err instanceof PermissionError) {
+  if (
+    err instanceof PdvError ||
+    err instanceof PermissionError ||
+    err instanceof ModuleError
+  ) {
     return { ok: false, error: err.message };
   }
   console.error(`Falha ao ${what}:`, err);

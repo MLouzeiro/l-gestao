@@ -6,6 +6,7 @@ import { z } from "zod";
 import { inventories } from "@/server/db/schema";
 import { requirePermission } from "@/server/rbac/require-permission";
 import { withTenant } from "@/server/tenant/with-tenant";
+import { audit } from "@/server/audit/log";
 import {
   applyInventory,
   createInventory,
@@ -65,7 +66,7 @@ export async function _abrirInventario(
   }
 
   try {
-    await withTenant(tenantId, (tx) =>
+    await withTenant(tenantId, session.user.id, (tx) =>
       createInventory(tx, {
         tenantId,
         warehouseId: parsed.data.warehouseId,
@@ -86,7 +87,7 @@ export async function _salvarContagem(
   _prev: InventarioFormState,
   formData: FormData,
 ): Promise<InventarioFormState> {
-  const { tenantId } = await requirePermission("stock.inventory");
+  const { tenantId, session } = await requirePermission("stock.inventory");
 
   const parsed = contagemSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -101,7 +102,7 @@ export async function _salvarContagem(
   }
 
   try {
-    await withTenant(tenantId, (tx) =>
+    await withTenant(tenantId, session.user.id, (tx) =>
       saveCounts(tx, {
         tenantId,
         inventoryId: parsed.data.inventoryId,
@@ -138,7 +139,7 @@ export async function _aplicarContagem(
 
   let applied = 0;
   try {
-    await withTenant(tenantId, async (tx) => {
+    await withTenant(tenantId, session.user.id, async (tx) => {
       await saveCounts(tx, {
         tenantId,
         inventoryId: parsed.data.inventoryId,
@@ -172,7 +173,7 @@ export async function _descartarInventario(
   _prev: InventarioFormState,
   formData: FormData,
 ): Promise<InventarioFormState> {
-  const { tenantId } = await requirePermission("stock.inventory");
+  const { tenantId, session } = await requirePermission("stock.inventory");
 
   const parsed = contagemSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -180,7 +181,7 @@ export async function _descartarInventario(
   }
 
   try {
-    await withTenant(tenantId, async (tx) => {
+    await withTenant(tenantId, session.user.id, async (tx) => {
       const removed = await tx
         .delete(inventories)
         .where(
@@ -196,6 +197,12 @@ export async function _descartarInventario(
           "Inventário não encontrado ou já aplicado.",
         );
       }
+      await audit(tx, {
+        action: "DESCARTE_INVENTARIO",
+        module: "inventario",
+        entityType: "inventory",
+        entityId: parsed.data.inventoryId,
+      });
     });
   } catch (err) {
     if (err instanceof InventoryError) return { error: err.message };

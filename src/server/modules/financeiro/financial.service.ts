@@ -10,6 +10,7 @@ import {
 } from "@/server/db/schema";
 import { fromCents, toCents } from "@/lib/money";
 import type { TenantTx } from "@/server/tenant/with-tenant";
+import { audit } from "@/server/audit/log";
 import {
   FinancialError,
   asUtcDay,
@@ -140,17 +141,20 @@ export async function registerPayment(
   const method = input.paymentMethod.trim();
   if (!method) throw new FinancialError("Informe a forma de pagamento.");
 
-  await tx.insert(financialPayments).values({
-    tenantId: ctx.tenantId,
-    financialAccountId: accountId,
-    amount: fromCents(input.amountCents),
-    interest: fromCents(input.interestCents ?? 0),
-    discount: fromCents(input.discountCents ?? 0),
-    paymentMethod: method,
-    paidAt: dateOnly(input.paidAt ?? new Date()),
-    receivedBy: ctx.userId ?? null,
-    notes: input.notes?.trim() || null,
-  });
+  const [payment] = await tx
+    .insert(financialPayments)
+    .values({
+      tenantId: ctx.tenantId,
+      financialAccountId: accountId,
+      amount: fromCents(input.amountCents),
+      interest: fromCents(input.interestCents ?? 0),
+      discount: fromCents(input.discountCents ?? 0),
+      paymentMethod: method,
+      paidAt: dateOnly(input.paidAt ?? new Date()),
+      receivedBy: ctx.userId ?? null,
+      notes: input.notes?.trim() || null,
+    })
+    .returning({ id: financialPayments.id });
 
   await tx
     .update(financialAccounts)
@@ -161,6 +165,23 @@ export async function registerPayment(
       updatedAt: new Date(),
     })
     .where(and(eq(financialAccounts.tenantId, ctx.tenantId), eq(financialAccounts.id, accountId)));
+
+  await audit(tx, {
+    action: account.direction === "RECEIVABLE" ? "RECEBIMENTO" : "PAGAMENTO",
+    module: "financeiro",
+    entityType: "financial_payment",
+    entityId: payment.id,
+    before: { status: account.status, paidAmountCents: paidCents },
+    after: {
+      accountId,
+      amountCents: input.amountCents,
+      paymentMethod: method,
+      paidAt: input.paidAt ?? new Date(),
+      status,
+    },
+    tenantId: ctx.tenantId,
+    userId: ctx.userId ?? null,
+  });
 
   return { accountId, status, paidCents: newPaidCents };
 }

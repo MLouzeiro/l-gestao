@@ -1,5 +1,9 @@
 import { resolvePermissions } from "@/server/rbac/permissions";
 import { requirePermission } from "@/server/rbac/require-permission";
+import {
+  hasModule,
+  requireModule,
+} from "@/server/modules/tenancy/module.service";
 import { withTenant } from "@/server/tenant/with-tenant";
 import { getCashSummary } from "@/server/modules/pdv/cash.service";
 import {
@@ -12,7 +16,20 @@ import { PdvClient } from "@/components/pdv/pdv-client";
 export default async function PdvPage() {
   const { tenantId, role } = await requirePermission("sales.view");
 
+  const pdvAtivo = await withTenant(tenantId, (tx) =>
+    hasModule(tx, tenantId, "PDV"),
+  );
+  if (!pdvAtivo) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500">
+        Módulo <strong>PDV</strong> não está contratado para esta empresa.
+        Contrate em Administração → Módulos.
+      </div>
+    );
+  }
+
   const data = await withTenant(tenantId, async (tx) => {
+    await requireModule(tx, tenantId, "PDV");
     const settings = await getPdvSettings(tx, tenantId);
     if (!settings) return null;
     const [products, customers, cash] = await Promise.all([

@@ -27,6 +27,7 @@ import {
 } from "@/server/modules/vendas/sales.service";
 import { formatSaleNumber } from "@/server/modules/vendas/sales-rules";
 import { getOpenCash } from "./cash.service";
+import { requireModule } from "@/server/modules/tenancy/module.service";
 import { PdvError, validatePdvPayment } from "./pdv-rules";
 
 // Checkout do PDV: uma venda DRAFT → CONFIRMED → BILLED em UMA transação
@@ -66,6 +67,7 @@ export async function checkoutPdv(
   ctx: SaleContext,
   input: PdvCheckoutInput,
 ): Promise<PdvCheckoutResult> {
+  await requireModule(tx, ctx.tenantId, "PDV");
   const open = await getOpenCash(tx, ctx.tenantId);
   if (!open) throw new PdvError("Abra o caixa antes de vender.");
 
