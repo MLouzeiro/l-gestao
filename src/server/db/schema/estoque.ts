@@ -4,6 +4,7 @@ import {
   date,
   foreignKey,
   index,
+  integer,
   numeric,
   primaryKey,
   pgTable,
@@ -16,6 +17,8 @@ import {
 import {
   movementTypeEnum,
   reservationStatusEnum,
+  transferSettleOnEnum,
+  transferStatusEnum,
 } from "./enums";
 import { tenants } from "./tenancy";
 import { users } from "./auth";
@@ -75,12 +78,21 @@ export const transfers = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
+    number: integer("number").notNull().default(0),
+    status: transferStatusEnum("status").notNull().default("DRAFT"),
+    settleOn: transferSettleOnEnum("settle_on").notNull().default("SEND"),
     fromWarehouseId: uuid("from_warehouse_id").notNull(),
     toWarehouseId: uuid("to_warehouse_id").notNull(),
     userId: uuid("user_id").references(() => users.id, {
       onDelete: "set null",
     }),
     notes: text("notes"),
+    sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+    receivedAt: timestamp("received_at", { withTimezone: true, mode: "date" }),
+    cancelledAt: timestamp("cancelled_at", {
+      withTimezone: true,
+      mode: "date",
+    }),
     occurredAt: timestamp("occurred_at", {
       withTimezone: true,
       mode: "date",
@@ -103,6 +115,49 @@ export const transfers = pgTable(
     }).onDelete("restrict"),
     unique("transfers_tenant_id_uq").on(t.tenantId, t.id),
     index("transfers_tenant_idx").on(t.tenantId),
+    index("transfers_tenant_status_idx").on(t.tenantId, t.status),
+  ],
+);
+
+// Itens da transferência (produto + lote opcional + quantidade).
+export const transferItems = pgTable(
+  "transfer_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    transferId: uuid("transfer_id").notNull(),
+    productId: uuid("product_id").notNull(),
+    batchNumber: text("batch_number"),
+    quantity: numeric("quantity", { precision: 14, scale: 3 }).notNull(),
+    unitCost: numeric("unit_cost", { precision: 14, scale: 2 })
+      .notNull()
+      .default("0"),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique("transfer_items_tenant_id_uq").on(t.tenantId, t.id),
+    unique("transfer_items_tenant_transfer_product_uq").on(
+      t.tenantId,
+      t.transferId,
+      t.productId,
+    ),
+    index("transfer_items_transfer_idx").on(t.tenantId, t.transferId),
+    foreignKey({
+      columns: [t.tenantId, t.transferId],
+      foreignColumns: [transfers.tenantId, transfers.id],
+      name: "transfer_items_transfer_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [t.tenantId, t.productId],
+      foreignColumns: [products.tenantId, products.id],
+      name: "transfer_items_product_fk",
+    }).onDelete("restrict"),
+    check("transfer_items_quantity_positive", sql`quantity > 0`),
   ],
 );
 

@@ -64,16 +64,63 @@ Decisões do usuário: **acesso explícito + herança + default amplo** ·
   2FA — validar manualmente: criar filial/posto, marcar acesso por usuário,
   definir estoque-alvo).
 
+### Sprint 2 — commitado e em produção
+- Commit **`5f7dcae`** → `origin/main`; Action "Migrations" verde (job
+  `migrate` success); **0009 aplicada no Neon produção** (migration id 10) —
+  colunas `type`/`parent_id`/`manager_user_id`, tabelas novas com RLS
+  ENABLE+FORCE, permissões `units.*` + backfill da matriz (3 tenants:
+  ADMIN/GERENTE/ESTOQUISTA 2, FINANCEIRO/VISUALIZADOR 1, VENDEDOR 0).
+  Registro docs: `51b3f8d`.
+
+## Sessão 03/10/2026 (parte 3) — Sprint 3 (E4+E6 Transferências) CONCLUÍDO
+
+Decisões do usuário: **escopo simples + workflow** · **`settle_on` escolhível
+por transferência** (ENVIAR = baixa na origem no envio; RECEBER = só ao
+receber) · **menu próprio `/transferencias`**.
+
+- **Migration `0010_transfers_workflow.sql`** (à mão + journal manual): enums
+  `transfer_status` (DRAFT/SENT/RECEIVED/CANCELLED) e `transfer_settle_on`
+  (SEND/RECEIVE); `transfers` + `number`, `status`, `settle_on`, `sent_at`,
+  `received_at`, `cancelled_at`; tabela `transfer_items` (produto, lote
+  opcional, quantidade numeric(14,3), unit_cost — custo efetivo para o par e
+  estorno) com RLS FORCE + grants. `transfers` já tinha RLS (0001).
+- **Regras puras** `src/server/modules/transferencias/transfer-rules.ts`
+  (TDD): `assertTransferTransition` (DRAFT→send/cancel; SENT→receive/cancel;
+  RECEIVED/CANCELLED finais), `assertTransferItems` (≥1, qty>0, sem produto
+  duplicado, máx. 200), `shouldReleaseOnSend`, `calcTransferCostCents`,
+  `formatTransferNumber` (`TRANSF-000001`). `tests/unit/transfer-rules.test.ts`
+  (**13 testes**).
+- **Service** `transfer.service.ts`: `createTransfer` (fluxo simples via
+  `immediate` = envia+recebe na mesma transação; workflow nasce DRAFT),
+  `sendTransfer`, `receiveTransfer`, `cancelTransfer` (SENT+SEND estorna a
+  origem com `TRANSFERENCIA_ENTRADA` — livro imutável), `listTransfers`,
+  `getTransferDetail`. Par saída→entrada **preserva custo e lote**
+  (`applyMovement` agora retorna `unitCostCents`/`batchNumber` e aceita
+  `transferId`/`toWarehouseId`). Acesso validado nas DUAS unidades
+  (`assertWarehouseAccessible`). Numeração via `nextCounter("transfer")`.
+  `audit()` em toda mutação.
+- **Actions** `src/actions/transferencias.ts` (4): `_criarTransferencia`,
+  `_enviarTransferencia`, `_receberTransferencia`, `_cancelarTransferencia` —
+  `stock.transfer` + `requireModule("TRANSFERENCIAS")` + Zod com fieldErrors.
+- **UI** `/transferencias` (lista com status/modo/itens), `/transferencias/nova`
+  (origem/destino acessíveis, modo de baixa, itens com lote, checkbox
+  "executar agora"), `/transferencias/[id]` (itens + andamento + ações);
+  sidebar ganha **Transferências** (módulo `TRANSFERENCIAS` + `stock.transfer`).
+- **Testes**: unit **310/310 (18 suítes)** · integração **125/125 (13 suítes)**
+  (+`transfer.test.ts` 10: fluxo simples 10→0/0→10 com mesmo transfer_id e
+  custo preservado, saldo insuficiente com rollback, settle_on SEND
+  (trânsito fora dos dois lados) vs RECEIVE (origem mantém até receber),
+  cancel DRAFT neutro / cancel SENT com estorno, transições inválidas,
+  origem=destino recusado, RLS A≠B em transfers+items, RBAC da matriz,
+  usuário restrito não transfere de unidade alheia). Typecheck ✅ · build ✅.
+- Fix no caminho: helper `criarUnidade` dos testes inseria em `warehouses`
+  (RLS FORCE) fora de `withTenant` — corrigido.
+
 ### ▶ PRÓXIMO PASSO
-1. ~~Commit do Sprint 2 + deploy~~ — **FEITO**: commit `5f7dcae` em
-   `origin/main`; Action "Migrations" verde (job `migrate` success);
-   **0009 aplicada no Neon produção** (migration id 10) — colunas
-   `type`/`parent_id`/`manager_user_id`, tabelas novas com RLS ENABLE+FORCE,
-   permissões `units.*` + backfill da matriz (3 tenants: ADMIN/GERENTE/
-   ESTOQUISTA 2, FINANCEIRO/VISUALIZADOR 1, VENDEDOR 0).
-2. Sprint 3 — E4 Movimentações: transferências com workflow (envio/recebimento)
-   ao lado do fluxo simples, alinhado ao módulo `TRANSFERENCIAS`.
-3. Smoke autenticado do `/unidades` no dev/produção.
+1. Commit do Sprint 3 (com autorização) + deploy (Action aplica a 0010).
+2. Sprint 4 — E5 Lotes/validade + rastreio (etiquetas, alertas de vencimento)
+   e depois E7 Matriz→Postos / E8 Reposição.
+3. Smoke autenticado pendente: `/unidades` e `/transferencias` (2FA).
 
 ## Sessão 03/10/2026 — PROMPT MESTRE aplicado: diagnóstico + Sprint 1 (E2 Núcleo SaaS)
 

@@ -118,3 +118,15 @@ export const warehouseTypeEnum = pgEnum("warehouse_type", [
   "FILIAL",
   "POSTO",
 ]);
+
+export const transferStatusEnum = pgEnum("transfer_status", [
+  "DRAFT",
+  "SENT",
+  "RECEIVED",
+  "CANCELLED",
+]);
+
+export const transferSettleOnEnum = pgEnum("transfer_settle_on", [
+  "SEND",
+  "RECEIVE",
+]);

@@ -50,6 +50,8 @@ export type MovementInput = {
   userId?: string | null;
   referenceType?: string;
   referenceId?: string;
+  transferId?: string;
+  toWarehouseId?: string | null;
   occurredAt?: Date;
 };
 
@@ -71,7 +73,7 @@ function toYmd(d: Date | string | null): string | null {
 export async function applyMovement(
   tx: TenantTx,
   input: MovementInput,
-): Promise<{ movementId: string }> {
+): Promise<{ movementId: string; unitCostCents: number; batchNumber: string | null }> {
   const signal = movementSignal(input.type);
 
   // ---- produto (escopo do tenant via RLS) ----
@@ -341,6 +343,8 @@ export async function applyMovement(
       totalCost: fromCents(totalCents),
       referenceType: input.referenceType ?? null,
       referenceId: input.referenceId ?? null,
+      transferId: input.transferId ?? null,
+      toWarehouseId: input.toWarehouseId ?? null,
       userId: input.userId ?? null,
       occurredAt: input.occurredAt ?? new Date(),
       reason: input.reason ?? null,
@@ -369,7 +373,7 @@ export async function applyMovement(
     userId: input.userId ?? null,
   });
 
-  return { movementId: movement.id };
+  return { movementId: movement.id, unitCostCents, batchNumber: batchNumber || null };
 }
 
 function parseCostToCents(value: string): number {

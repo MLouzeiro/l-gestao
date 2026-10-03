@@ -71,6 +71,13 @@
       "when": 1791056400000,
       "tag": "0009_units_hierarchy",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791079200000,
+      "tag": "0010_transfers_workflow",
+      "breakpoints": true
     }
   ]
 }

@@ -32,6 +32,12 @@ function buildItems(
       phase: "sem acesso",
     },
     {
+      label: "Transferências",
+      module: "TRANSFERENCIAS",
+      href: permissions.includes("stock.transfer") ? "/transferencias" : null,
+      phase: "sem acesso",
+    },
+    {
       label: "Vendas",
       module: "VENDAS",
       href: permissions.includes("sales.view") ? "/vendas" : null,
