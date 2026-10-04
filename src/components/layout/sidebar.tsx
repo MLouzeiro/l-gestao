@@ -38,6 +38,12 @@ function buildItems(
       phase: "sem acesso",
     },
     {
+      label: "Lotes",
+      module: "LOTES_VALIDADE",
+      href: permissions.includes("stock.view") ? "/lotes" : null,
+      phase: "sem acesso",
+    },
+    {
       label: "Vendas",
       module: "VENDAS",
       href: permissions.includes("sales.view") ? "/vendas" : null,

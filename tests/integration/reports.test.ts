@@ -26,10 +26,6 @@ function ctxFor(tenantId: string) {
 
 const PAGE = { page: 1, pageSize: 20 };
 
-function utcToday(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 /** dia local "YYYY-MM-DD" (dueDate é gravado na meia-noite local) */
 function todayLocal(): string {
   const d = new Date();
@@ -198,7 +194,7 @@ describe("relatórios: vendas faturadas", () => {
     });
     expect(rel.total).toBe(1);
     expect(rel.rows[0]).toMatchObject({
-      key: utcToday(),
+      key: todayLocal(),
       orders: 1,
       quantity: 3,
       netCents: 6000,
@@ -217,7 +213,7 @@ describe("relatórios: vendas faturadas", () => {
     });
 
     const outroDia = await withTenant(tenantId, (tx) =>
-      getSalesReport(tx, tenantId, { ...PAGE, groupBy: "dia", de: utcToday(), ate: utcToday() }),
+      getSalesReport(tx, tenantId, { ...PAGE, groupBy: "dia", de: todayLocal(), ate: todayLocal() }),
     );
     expect(outroDia.summary.orders).toBe(1);
 

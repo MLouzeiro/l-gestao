@@ -13,12 +13,31 @@ export function formatDateTime(date: Date): string {
   return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
+/** Chave de dia local (relógio de parede) de um timestamp: "YYYY-MM-DD". */
+export function localDayKey(date: Date): string {
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${mm}-${dd}`;
+}
+
+/**
+ * Início do dia de negócio local ("YYYY-MM-DD" → meia-noite no relógio local).
+ * Usado como limite inferior de filtros sobre timestamptz (ex.: billedAt).
+ */
+export function localDayStart(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y!, m! - 1, d!, 0, 0, 0, 0);
+}
+
+/** Fim do dia de negócio local (23:59:59.999 no relógio local). */
+export function localDayEnd(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y!, m! - 1, d!, 23, 59, 59, 999);
+}
+
 /** Data local de hoje em `YYYY-MM-DD` (default de inputs <input type="date">). */
 export function todayInputValue(): string {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
+  return localDayKey(new Date());
 }
 
 /** Coluna date (UTC midnight) → "YYYY-MM-DD" para <input type="date">. */

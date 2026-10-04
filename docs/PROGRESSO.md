@@ -116,14 +116,50 @@ receber) · **menu próprio `/transferencias`**.
 - Fix no caminho: helper `criarUnidade` dos testes inseria em `warehouses`
   (RLS FORCE) fora de `withTenant` — corrigido.
 
+## Sessão 03/10/2026 (parte 4) — Sprint 4 (E5 Lotes/validade + rastreio) CONCLUÍDO
+
+Decisões do usuário: **escopo completo** (lotes + rastreio + alertas + etiqueta) ·
+**menu próprio `/lotes`**. **Sem migration** — `batches`, `batch_balances` e
+`dias_alerta_validade` já existiam.
+
+- **Regras puras** `src/server/modules/lotes/batch-rules.ts` (TDD):
+  `classifyExpiry` (VENCIDO/CRITICO/PROXIMO/OK/SEM_VALIDADE conforme as
+  janelas `dias_alerta_validade`), `daysUntil`, `batchLabelData` (etiqueta
+  pronta, datas pt-BR), `summarizeTrace` (entradas/saídas/saldo/vendas/
+  clientes), `expiryLabel`. `tests/unit/batch-rules.test.ts` (**11 testes**).
+- **Service** `batch.service.ts` (somente leitura): `listBatches` (saldo por
+  unidade + classificação, filtros produto/unidade/somente-alerta),
+  `listExpiryAlerts` (janela configurável), `getBatchTrace` (movimentações do
+  lote → venda (`referenceType: "SALE"`) → cliente, consolidação + etiqueta),
+  `getAlertSettings`.
+- **Action** `src/actions/lotes.ts`: `_salvarAlertaValidade` (`settings.manage`
+  + Zod + `audit()` ALTERACAO_CONFIGURACAO).
+- **UI** `/lotes` (lista com badge de validade, saldo por unidade, seção de
+  alertas, form de janela de alerta para ADMIN), `/lotes/[id]` (resumo do
+  rastreio, movimentações com venda/cliente, **etiqueta 50×30mm** para
+  impressão via `window.print()`); sidebar ganha **Lotes** (módulo
+  `LOTES_VALIDADE` + `stock.view`); CSS `.etiqueta-impressao` (padrão cupom).
+- **Testes**: unit **321/321 (19 suítes)** · integração **128/128 (14 suítes)**
+  (+`batches.test.ts` 3: listagem/classificação/alertas, RLS A≠B, rastreio
+  lote→venda→cliente com consolidação e etiqueta). Typecheck ✅ · build ✅.
+
+### 🐞 Bug real encontrado e corrigido: dia de negócio (UTC vs local)
+- **Sintoma**: `dashboard.test.ts`/`reports.test.ts` falhavam só após as 21h
+  BRT (meia-noite UTC) — títulos de "hoje" viravam OVERDUE e agregados por dia
+  zeravam. Flake tempo-dependente pré-existente (confirmado com `git stash`).
+- **Causa**: escrita de colunas `date` usa **dia local** (`asUtcDay`), mas
+  `summarizeAccounts` comparava com `todayUtc()` e os filtros de período
+  (`dayStart`/`dayEnd` e `dayStartMs`/`dayEndMs`) montavam limites em UTC
+  (`T00:00:00Z`). Com UTC ≠ local (21h–24h BRT), o dia divergia.
+- **Correção**: dia de negócio padronizado em **dia local** (decisão F11) —
+  `lib/dates.ts` ganha `localDayKey`/`localDayStart`/`localDayEnd`;
+  `report.service` (todayLocal, billedDay, limites) e `dashboard.service`
+  (limites) usam os helpers; testes usam o dia local como "hoje".
+
 ### ▶ PRÓXIMO PASSO
-1. ~~Commit do Sprint 3 + deploy~~ — **FEITO**: commit `b0e9a0f` em
-   `origin/main`; Action "Migrations" verde (job `migrate` success);
-   **0010 aplicada no Neon produção** (migration id 11) — colunas de workflow
-   em `transfers`, `transfer_items` com RLS ENABLE+FORCE nas duas tabelas.
-2. Sprint 4 — E5 Lotes/validade + rastreio (etiquetas, alertas de vencimento)
-   e depois E7 Matriz→Postos / E8 Reposição.
-3. Smoke autenticado pendente: `/unidades` e `/transferencias` (2FA).
+1. Commit do Sprint 4 (com autorização) + deploy.
+2. Sprint 5 — E7 Matriz→Postos + E8 Reposição (requisições entre unidades).
+3. Smoke autenticado pendente: `/unidades`, `/transferencias`, `/lotes` (2FA).
 
 ## Sessão 03/10/2026 — PROMPT MESTRE aplicado: diagnóstico + Sprint 1 (E2 Núcleo SaaS)
 

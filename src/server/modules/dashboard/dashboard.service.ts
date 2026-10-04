@@ -1,6 +1,6 @@
 import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
 import { financialAccounts, salesOrders } from "@/server/db/schema";
-import { todayInputValue } from "@/lib/dates";
+import { localDayEnd, localDayStart, todayInputValue } from "@/lib/dates";
 import { toCents } from "@/lib/money";
 import type { TenantTx } from "@/server/tenant/with-tenant";
 import {
@@ -52,12 +52,13 @@ const NEXT_DUE_LIMIT = 5;
 
 const DAY_MS = 86_400_000;
 
+// Limites de filtro = dia de negócio LOCAL (relógio de parede, decisão F11).
 function dayStartMs(iso: string): Date {
-  return new Date(`${iso}T00:00:00.000Z`);
+  return localDayStart(iso);
 }
 
 function dayEndMs(iso: string): Date {
-  return new Date(`${iso}T23:59:59.999Z`);
+  return localDayEnd(iso);
 }
 
 export async function getDashboard(

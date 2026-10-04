@@ -331,8 +331,35 @@ body {
     left: 0;
     top: 0;
   }
+  .etiqueta-impressao,
+  .etiqueta-impressao * {
+    visibility: visible;
+  }
+  .etiqueta-impressao {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
   @page {
     size: 80mm auto;
     margin: 0;
   }
+}
+
+/* Etiqueta de lote (cartão 50×30mm) — fora da tela; no print sai junto do
+   CSS do cupom (a app some e só a etiqueta fica visível). */
+.etiqueta-impressao {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 50mm;
+  height: 30mm;
+  padding: 2mm 3mm;
+  overflow: hidden;
+  border: 1px dashed #666;
+  background: #fff;
+  color: #000;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 10px;
+  line-height: 1.3;
 }

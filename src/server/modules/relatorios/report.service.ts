@@ -14,6 +14,7 @@ import {
   warehouses,
 } from "@/server/db/schema";
 import { toCents } from "@/lib/money";
+import { localDayEnd, localDayKey, localDayStart } from "@/lib/dates";
 import type { TenantTx } from "@/server/tenant/with-tenant";
 import type { FinancialStatus } from "@/server/modules/financeiro/financial-rules";
 import {
@@ -43,16 +44,20 @@ import {
 
 export type PageOpts = { all?: boolean };
 
+// Limites de filtro = dia de negócio LOCAL (relógio de parede, decisão F11) —
+// um timestamptz de 23h BRT pertence ao dia local, não ao dia UTC.
 function dayStart(iso: string): Date {
-  return new Date(`${iso}T00:00:00.000Z`);
+  return localDayStart(iso);
 }
 
 function dayEnd(iso: string): Date {
-  return new Date(`${iso}T23:59:59.999Z`);
+  return localDayEnd(iso);
 }
 
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
+// Dia de negócio = dia local (relógio de parede), como as colunas `date`
+// são gravadas via asUtcDay (decisão F11) — nunca o dia UTC.
+function todayLocal(): string {
+  return localDayKey(new Date());
 }
 
 function sanitizeLike(q: string): string {
@@ -385,7 +390,7 @@ export async function getSalesReport(
 
   const facts: SaleFact[] = sales.map((s) => ({
     saleId: s.id,
-    billedDay: s.billedAt ? s.billedAt.toISOString().slice(0, 10) : "",
+    billedDay: s.billedAt ? localDayKey(s.billedAt) : "",
     sellerId: s.sellerId,
     sellerName: s.sellerName,
     quantity: qtyBySale.get(s.id) ?? 0,
@@ -610,7 +615,7 @@ export async function getFinanceReport(
     amountCents: centsOf(a.amount),
     paidCents: centsOf(a.paidAmount),
   }));
-  const accountsSummary = summarizeAccounts(facts, todayUtc());
+  const accountsSummary = summarizeAccounts(facts, todayLocal());
 
   // Baixas registradas no período (paidAt é coluna date)
   const paymentConds = [
