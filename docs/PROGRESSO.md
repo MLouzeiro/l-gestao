@@ -157,7 +157,9 @@ Decisões do usuário: **escopo completo** (lotes + rastreio + alertas + etiquet
   (limites) usam os helpers; testes usam o dia local como "hoje".
 
 ### ▶ PRÓXIMO PASSO
-1. Commit do Sprint 4 (com autorização) + deploy.
+1. ~~Commit do Sprint 4 + deploy~~ — **FEITO**: commit `0e0688e` em
+   `origin/main` (sem migration nova — a Action não disparou, correto;
+   deploy Vercel pelo push).
 2. Sprint 5 — E7 Matriz→Postos + E8 Reposição (requisições entre unidades).
 3. Smoke autenticado pendente: `/unidades`, `/transferencias`, `/lotes` (2FA).
 
