@@ -1,6 +1,6 @@
 # L Gestão — Progresso (sessão de trabalho)
 
-> Atualizado em: 03/10/2026 (parte 2). Estado salvo para retomar a sessão seguinte.
+> Atualizado em: 06/10/2026. Estado salvo para retomar a sessão seguinte.
 
 **Nome do sistema: L Gestão** (slug `l-gestao`, URL `l-gestao.vercel.app`).
 
@@ -198,6 +198,12 @@ Decisões do usuário: **escopo completo** (lotes + rastreio + alertas + etiquet
 - Credenciais: admin `teste@empresa.com.br` / `senha12345` (exige
   configurar 2FA) · gerente `gerente@empresa.com.br` / `senha12345`
   (entra direto).
+
+### Memória RAG atualizada (harness)
+- `docs/PROGRESSO.md` e `docs/ARQUITETURA.md` re-indexados em `.claude/rag.db`
+  (28 + 11 chunks; consultas validadas com `search.ts`).
+- Fix do harness: `better-sqlite3`/`@types/better-sqlite3` entraram em
+  `devDependencies` (o `rag-db.ts` importava o módulo sem ele instalado).
 
 ### ▶ PRÓXIMO PASSO
 1. ~~Commit do visual + mockup + deploy~~ — **FEITO**: commit `79e9e84` em
