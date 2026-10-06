@@ -156,12 +156,54 @@ Decisões do usuário: **escopo completo** (lotes + rastreio + alertas + etiquet
   `report.service` (todayLocal, billedDay, limites) e `dashboard.service`
   (limites) usam os helpers; testes usam o dia local como "hoje".
 
+### Sprint 4 — commitado
+- Commit **`0e0688e`** → `origin/main` (sem migration nova — a Action não
+  disparou, correto; deploy Vercel pelo push). Registro docs: `f429cf6`.
+
+## Sessão 05/10/2026 — Mockup + identidade visual aplicada + acesso demo
+
+### Mockup interativo (docs/mockup-l-gestao.html)
+- Arquivo único autocontido (93 KB): 14 telas navegáveis, PDV com carrinho
+  ao vivo, modal PIX com QR, workflow de transferências interativo
+  (DRAFT→SENT→RECEIVED animado), toggles de módulos, tema claro/escuro,
+  mapa de funcionalidades (M1–M5 + E2–E6) e arquitetura.
+- Validado no navegador (Playwright); bug real corrigido no caminho
+  (`.glow-card::before` interceptava cliques — `pointer-events:none`).
+  Capturas em `docs/mockup/`.
+
+### Identidade visual do mockup aplicada ao sistema real
+- `layout.tsx`: fontes **Sora** (títulos/números), **Manrope** (corpo),
+  **JetBrains Mono** (códigos) via `next/font`.
+- `globals.css`: tokens do mockup (paleta dark `#070c17`/painéis
+  `#0f172a`, acentos indigo/emerald/amber/rose/sky/violet/orange em
+  vars), glows de fundo do mockup, utilitários `.badge/.b-*`,
+  `.glow-card`, `.kpi .v/.d`, `.steps`, `.keys`, botão primário com
+  gradiente + sombra, `th` em caixa alta com tracking.
+- `sidebar.tsx`: marca "L" gradiente, seções (Geral/Operação/Comercial/
+  Análise/Administração) e ícones — como no mockup. Lógica de
+  permissões/módulos preservada.
+- Badges de status (vendas, compras, financeiro, transferências,
+  unidades, lotes, relatórios) migraram para `.badge .b-*`.
+- `KpiStrip` no estilo `.kpi` do mockup.
+- **Funcionalidades preservadas**: typecheck ✅ · 321/321 unit ✅ ·
+  128/128 integração ✅ · build ✅. Smoke visual (dev :3002) em
+  painel/dashboard/PDV — capturas em `docs/mockup/novo-*.png`.
+
+### Acesso de demonstração (2FA)
+- 2FA desativado no usuário `teste@empresa.com.br` (dev + Neon produção)
+  por solicitação — **atenção**: como é ADMIN, o sistema direciona para
+  `/configurar-2fa` (regra: ADMIN obrigatório com 2FA). Para acesso
+  imediato foi criado **`gerente@empresa.com.br` / `senha12345`**
+  (papel GERENTE, sem 2FA) nas empresas demo do dev.
+- Credenciais: admin `teste@empresa.com.br` / `senha12345` (exige
+  configurar 2FA) · gerente `gerente@empresa.com.br` / `senha12345`
+  (entra direto).
+
 ### ▶ PRÓXIMO PASSO
-1. ~~Commit do Sprint 4 + deploy~~ — **FEITO**: commit `0e0688e` em
-   `origin/main` (sem migration nova — a Action não disparou, correto;
-   deploy Vercel pelo push).
-2. Sprint 5 — E7 Matriz→Postos + E8 Reposição (requisições entre unidades).
-3. Smoke autenticado pendente: `/unidades`, `/transferencias`, `/lotes` (2FA).
+1. Commit do visual + mockup (com autorização) + deploy.
+2. Replicar o usuário GERENTE em produção (opcional) ou reativar 2FA do
+   admin com novo QR.
+3. Sprint 5 — E7 Matriz→Postos + E8 Reposição (requisições entre unidades).
 
 ## Sessão 03/10/2026 — PROMPT MESTRE aplicado: diagnóstico + Sprint 1 (E2 Núcleo SaaS)
 

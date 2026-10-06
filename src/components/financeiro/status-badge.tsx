@@ -1,11 +1,12 @@
 import type { FinancialStatus } from "@/server/modules/financeiro/financial-rules";
 
-const ESTILOS: Record<string, { label: string; className: string }> = {
-  OPEN: { label: "Em aberto", className: "bg-slate-100 text-slate-600" },
-  PARTIAL: { label: "Parcial", className: "bg-amber-50 text-amber-700" },
-  OVERDUE: { label: "Vencida", className: "bg-rose-50 text-rose-700" },
-  PAID: { label: "Quitada", className: "bg-emerald-50 text-emerald-700" },
-  CANCELLED: { label: "Cancelada", className: "bg-slate-100 text-slate-500" },
+// Badge tintado do mockup (globals.css: .badge/.b-*).
+const ESTILOS: Record<string, { label: string; badge: string }> = {
+  OPEN: { label: "Em aberto", badge: "b-slate" },
+  PARTIAL: { label: "Parcial", badge: "b-amber" },
+  OVERDUE: { label: "Vencida", badge: "b-rose" },
+  PAID: { label: "Quitada", badge: "b-emerald" },
+  CANCELLED: { label: "Cancelada", badge: "b-slate" },
 };
 
 export const DIRECTION_LABELS: Record<"RECEIVABLE" | "PAYABLE", string> = {
@@ -23,12 +24,6 @@ export const STATUS_FILTERS: { value: string; label: string }[] = [
 ];
 
 export function StatusBadge({ status }: { status: FinancialStatus | string }) {
-  const s = ESTILOS[status] ?? { label: status, className: "bg-slate-100 text-slate-600" };
-  return (
-    <span
-      className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${s.className}`}
-    >
-      {s.label}
-    </span>
-  );
+  const s = ESTILOS[status] ?? { label: status, badge: "b-slate" };
+  return <span className={`badge ${s.badge}`}>{s.label}</span>;
 }

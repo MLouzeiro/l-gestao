@@ -1,19 +1,18 @@
 import type { TransferStatus } from "@/server/modules/transferencias/transfer-rules";
 
-const ESTILOS: Record<TransferStatus, { label: string; cls: string }> = {
-  DRAFT: { label: "Rascunho", cls: "bg-slate-100 text-slate-600" },
-  SENT: { label: "Enviada", cls: "bg-sky-100 text-sky-700" },
-  RECEIVED: { label: "Recebida", cls: "bg-emerald-100 text-emerald-700" },
-  CANCELLED: { label: "Cancelada", cls: "bg-rose-100 text-rose-700" },
+// Badge tintado do mockup (globals.css: .badge/.b-*).
+const ESTILOS: Record<TransferStatus, { label: string; badge: string }> = {
+  DRAFT: { label: "Rascunho", badge: "b-slate" },
+  SENT: { label: "Enviada", badge: "b-sky" },
+  RECEIVED: { label: "Recebida", badge: "b-emerald" },
+  CANCELLED: { label: "Cancelada", badge: "b-rose" },
 };
 
-export function StatusTransferenciaBadge({ status }: { status: TransferStatus }) {
+export function StatusTransferenciaBadge({
+  status,
+}: {
+  status: TransferStatus;
+}) {
   const e = ESTILOS[status];
-  return (
-    <span
-      className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${e.cls}`}
-    >
-      {e.label}
-    </span>
-  );
+  return <span className={`badge ${e.badge}`}>{e.label}</span>;
 }

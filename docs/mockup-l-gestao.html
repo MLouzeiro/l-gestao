@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L Gestão — Mockup Interativo do Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070c17; --bg2:#0b1220; --panel:#0f172a; --panel2:#111c31;
+  --line:#1e293b; --line2:#263450;
+  --txt:#e2e8f0; --txt2:#94a3b8; --txt3:#64748b;
+  --indigo:#6366f1; --indigo2:#818cf8; --indigo-dim:rgba(99,102,241,.14);
+  --emerald:#34d399; --emerald-dim:rgba(52,211,153,.13);
+  --amber:#fbbf24; --amber-dim:rgba(251,191,36,.13);
+  --rose:#fb7185; --rose-dim:rgba(251,113,133,.13);
+  --sky:#38bdf8; --sky-dim:rgba(56,189,248,.13);
+  --violet:#a78bfa; --violet-dim:rgba(167,139,250,.13);
+  --orange:#fb923c; --orange-dim:rgba(251,146,60,.13);
+  --radius:14px;
+  --font-display:"Sora",sans-serif;
+  --font-body:"Manrope",sans-serif;
+  --font-mono:"JetBrains Mono",monospace;
+  --shadow:0 24px 60px -24px rgba(0,0,0,.65);
+}
+html.light{
+  --bg:#f1f5f9; --bg2:#f8fafc; --panel:#ffffff; --panel2:#f8fafc;
+  --line:#e2e8f0; --line2:#cbd5e1;
+  --txt:#0f172a; --txt2:#475569; --txt3:#94a3b8;
+  --shadow:0 24px 60px -28px rgba(15,23,42,.22);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--txt);line-height:1.55;overflow-x:hidden}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(99,102,241,.16), transparent 60%),
+    radial-gradient(900px 500px at 92% 12%, rgba(56,189,248,.10), transparent 55%),
+    radial-gradient(800px 600px at 50% 110%, rgba(167,139,250,.10), transparent 60%);
+}
+::selection{background:rgba(99,102,241,.45);color:#fff}
+.topbar{position:sticky;top:0;z-index:60;backdrop-filter:blur(18px);background:color-mix(in srgb, var(--bg) 78%, transparent);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1280px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--txt)}
+.brand-mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;font-family:var(--font-display);font-weight:800;font-size:17px;box-shadow:0 10px 26px -10px rgba(99,102,241,.8)}
+.brand-name{font-family:var(--font-display);font-weight:700;font-size:17px;letter-spacing:-.2px}
+.brand-name small{display:block;font-size:10px;font-weight:600;color:var(--txt3);letter-spacing:.16em;text-transform:uppercase}
+.topnav{margin-left:auto;display:flex;align-items:center;gap:6px}
+.topnav a{padding:8px 13px;border-radius:9px;font-size:13px;font-weight:600;color:var(--txt2);text-decoration:none;transition:.18s}
+.topnav a:hover{color:var(--txt);background:var(--indigo-dim)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:13.5px;padding:11px 18px;border-radius:11px;transition:.18s;text-decoration:none}
+.btn-primary{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;box-shadow:0 12px 30px -12px rgba(99,102,241,.9)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 40px -12px rgba(99,102,241,1)}
+.btn-ghost{background:var(--panel);color:var(--txt);border:1px solid var(--line2)}
+.btn-ghost:hover{border-color:var(--indigo);color:var(--indigo2)}
+.btn-sm{padding:7px 13px;font-size:12px;border-radius:9px}
+.btn-danger{background:var(--rose-dim);color:var(--rose);border:1px solid rgba(251,113,133,.3)}
+.btn-success{background:var(--emerald-dim);color:var(--emerald);border:1px solid rgba(52,211,153,.3)}
+.theme-btn{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line2);color:var(--txt2);cursor:pointer;font-size:15px}
+.theme-btn:hover{color:var(--txt);border-color:var(--indigo)}
+.hero{max-width:1280px;margin:0 auto;padding:88px 24px 60px;position:relative}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border-radius:999px;background:var(--indigo-dim);border:1px solid rgba(99,102,241,.32);color:var(--indigo2);font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 12px var(--emerald);animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.hero h1{margin-top:26px;font-family:var(--font-display);font-weight:800;font-size:clamp(2.6rem,6vw,4.6rem);line-height:1.02;letter-spacing:-.035em;max-width:15ch}
+.hero h1 .grad{background:linear-gradient(100deg,#818cf8 0%,#38bdf8 48%,#a78bfa 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{margin-top:22px;font-size:19px;color:var(--txt2);max-width:58ch;font-weight:500}
+.hero-cta{margin-top:34px;display:flex;flex-wrap:wrap;gap:12px}
+.hero-stats{margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 20px 18px;position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--indigo-dim),transparent 55%);opacity:.5}
+.stat .n{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.03em;position:relative}
+.stat .l{font-size:12px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.11em;margin-top:5px;position:relative}
+.section{max-width:1280px;margin:0 auto;padding:72px 24px}
+.section-head{margin-bottom:34px}
+.section-head h2{font-family:var(--font-display);font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:800;letter-spacing:-.03em}
+.section-head p{margin-top:11px;color:var(--txt2);font-size:16px;max-width:66ch}
+.kicker{font-size:11.5px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--indigo2);margin-bottom:10px}
+.frame{border-radius:22px;border:1px solid var(--line2);overflow:hidden;background:var(--bg2);box-shadow:var(--shadow)}
+.frame-bar{display:flex;align-items:center;gap:9px;padding:13px 18px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tl{width:11px;height:11px;border-radius:50%}
+.tl.r{background:#ff5f57}.tl.y{background:#febc2e}.tl.g{background:#28c840}
+.frame-url{margin-left:12px;flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:6px 14px;font-family:var(--font-mono);font-size:11.5px;color:var(--txt3)}
+.app-shell{display:grid;grid-template-columns:224px 1fr;min-height:760px}
+.sidebar{background:var(--panel);border-right:1px solid var(--line);padding:18px 13px;display:flex;flex-direction:column;gap:3px}
+.side-brand{display:flex;align-items:center;gap:10px;padding:6px 9px 16px;border-bottom:1px solid var(--line);margin-bottom:13px}
+.side-brand .brand-mark{width:31px;height:31px;border-radius:9px;font-size:14px}
+.side-brand b{font-family:var(--font-display);font-size:14px}
+.side-brand span{display:block;font-size:9.5px;color:var(--txt3);letter-spacing:.13em;text-transform:uppercase;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9.5px 12px;border-radius:10px;font-size:13.2px;font-weight:600;color:var(--txt2);cursor:pointer;transition:.16s;border:1px solid transparent;user-select:none}
+.nav-item:hover{background:var(--indigo-dim);color:var(--txt)}
+.nav-item.active{background:linear-gradient(135deg,rgba(99,102,241,.22),rgba(99,102,241,.08));color:var(--indigo2);border-color:rgba(99,102,241,.35)}
+.nav-item .ico{width:19px;text-align:center;font-size:14px;opacity:.95}
+.nav-sep{margin:11px 8px 7px;font-size:9.5px;font-weight:800;letter-spacing:.19em;text-transform:uppercase;color:var(--txt3)}
+.screen-wrap{position:relative;background:var(--bg2);overflow:hidden}
+.screen{display:none;padding:26px 30px 40px;animation:fade .34s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.page-title{font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.page-sub{color:var(--txt2);font-size:13px;margin-top:5px}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:21px}
+.grid{display:grid;gap:13px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:17px 18px}
+.card h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;color:var(--txt3);margin-bottom:11px}
+.kpi .v{font-family:var(--font-display);font-size:25px;font-weight:800;letter-spacing:-.025em}
+.kpi .d{font-size:11.5px;font-weight:700;margin-top:4px}
+.up{color:var(--emerald)}.down{color:var(--rose)}.muted{color:var(--txt3)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:7px;font-size:10.5px;font-weight:700;letter-spacing:.045em}
+.b-emerald{background:var(--emerald-dim);color:var(--emerald)}
+.b-rose{background:var(--rose-dim);color:var(--rose)}
+.b-amber{background:var(--amber-dim);color:var(--amber)}
+.b-sky{background:var(--sky-dim);color:var(--sky)}
+.b-indigo{background:var(--indigo-dim);color:var(--indigo2)}
+.b-violet{background:var(--violet-dim);color:var(--violet)}
+.b-orange{background:var(--orange-dim);color:var(--orange)}
+.b-slate{background:var(--line);color:var(--txt2)}
+table{width:100%;border-collapse:collapse;font-size:12.6px}
+th{text-align:left;padding:9px 11px;font-size:10.2px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--line)}
+td{padding:10px 11px;border-bottom:1px solid var(--line);color:var(--txt)}
+tr:last-child td{border-bottom:0}
+tbody tr{transition:.14s}
+tbody tr:hover{background:var(--indigo-dim)}
+.t-right{text-align:right}.t-mono{font-family:var(--font-mono);font-size:11.6px}
+.t-strong{font-weight:700}
+.tabs{display:flex;gap:6px;margin-bottom:17px;flex-wrap:wrap}
+.tab{padding:8px 15px;border-radius:10px;font-size:12.6px;font-weight:700;cursor:pointer;color:var(--txt2);border:1px solid var(--line);background:var(--panel);transition:.16s}
+.tab:hover{color:var(--txt)}
+.tab.active{background:var(--indigo-dim);color:var(--indigo2);border-color:rgba(99,102,241,.4)}
+.tab-panel{display:none;animation:fade .28s ease}
+.tab-panel.active{display:block}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;font-weight:700;color:var(--txt2);letter-spacing:.05em}
+.field input,.field select,.field textarea{background:var(--bg2);border:1px solid var(--line2);border-radius:9px;padding:9.5px 12px;color:var(--txt);font-family:var(--font-body);font-size:13px;outline:none;transition:.16s}
+.field input:focus,.field select:focus{border-color:var(--indigo);box-shadow:0 0 0 3px var(--indigo-dim)}
+.divider{height:1px;background:var(--line);margin:16px 0}
+.pill-row{display:flex;flex-wrap:wrap;gap:7px}
+.avatar{width:29px;height:29px;border-radius:9px;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff}
+.funnel-row{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.funnel-row .lbl{width:104px;font-size:11.5px;font-weight:700;color:var(--txt2)}
+.funnel-row .track{flex:1;height:24px;border-radius:7px;background:var(--line);overflow:hidden}
+.funnel-row .track i{display:block;height:100%;border-radius:7px;display:flex;align-items:center;padding-left:10px;font-size:10.5px;font-weight:800;color:#fff}
+.bars{display:flex;align-items:flex-end;gap:5px;height:148px;padding-top:8px}
+.bars .bar{flex:1;border-radius:6px 6px 3px 3px;min-width:7px;background:linear-gradient(180deg,#818cf8,#4f46e5);position:relative;transition:.2s}
+.bars .bar:hover{background:linear-gradient(180deg,#38bdf8,#6366f1);transform:scaleY(1.04)}
+.bars .bar span{position:absolute;top:-26px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:3px 8px;font-size:10px;font-weight:700;white-space:nowrap;opacity:0;pointer-events:none;transition:.18s}
+.bars .bar:hover span{opacity:1}
+.pdv{display:grid;grid-template-columns:1.35fr 1fr;gap:15px}
+.pdv-total{font-family:var(--font-display);font-size:40px;font-weight:800;letter-spacing:-.035em;background:linear-gradient(100deg,#818cf8,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pay-btn{padding:11px;border-radius:11px;border:1.5px solid var(--line2);background:var(--bg2);color:var(--txt2);font-weight:700;font-size:12.5px;cursor:pointer;transition:.15s;font-family:var(--font-body)}
+.pay-btn:hover{border-color:var(--indigo);color:var(--txt)}
+.pay-btn.sel{border-color:var(--indigo);background:var(--indigo-dim);color:var(--indigo2)}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.key{padding:7px 8px;border-radius:8px;background:var(--bg2);border:1px solid var(--line);font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--txt3);cursor:pointer;transition:.15s}
+.key:hover{border-color:var(--indigo);color:var(--indigo2);background:var(--indigo-dim)}
+.key b{display:block;font-family:var(--font-body);font-size:10.5px;color:var(--txt2);margin-top:2px}
+.cart-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line2)}
+.cart-item:last-child{border-bottom:0}
+.steps{display:flex;align-items:center;gap:0;margin:13px 0 20px}
+.step{display:flex;align-items:center;gap:9px;flex:1}
+.step .ball{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--line);color:var(--txt3);border:2px solid var(--line2);transition:.3s;flex-shrink:0}
+.step.done .ball{background:var(--emerald);color:#042015;border-color:var(--emerald)}
+.step.current .ball{background:var(--indigo);color:#fff;border-color:var(--indigo2);box-shadow:0 0 0 5px var(--indigo-dim)}
+.step .lbl{font-size:11px;font-weight:700;color:var(--txt3)}
+.step.done .lbl,.step.current .lbl{color:var(--txt)}
+.step .line{flex:1;height:2.5px;background:var(--line2);margin:0 9px;border-radius:9px}
+.step.done .line{background:var(--emerald)}
+.mod-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:9px;transition:.18s;cursor:pointer}
+.mod-card:hover{transform:translateY(-3px);border-color:rgba(99,102,241,.45);box-shadow:0 16px 38px -18px rgba(99,102,241,.5)}
+.mod-card .mod-ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px}
+.switch{width:38px;height:21px;border-radius:99px;background:var(--line2);position:relative;cursor:pointer;transition:.22s;flex-shrink:0}
+.switch::after{content:"";position:absolute;top:2.5px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.22s}
+.switch.on{background:var(--emerald)}
+.switch.on::after{left:19px}
+.toast{position:fixed;right:22px;bottom:22px;z-index:200;min-width:250px;background:var(--panel);border:1px solid var(--line2);border-left:3px solid var(--emerald);border-radius:12px;padding:13px 17px;font-size:13px;font-weight:600;box-shadow:var(--shadow);transform:translateY(20px);opacity:0;pointer-events:none;transition:.3s}
+.toast.show{transform:none;opacity:1}
+.modal-bg{position:fixed;inset:0;background:rgba(3,7,18,.72);backdrop-filter:blur(6px);z-index:150;display:none;align-items:center;justify-content:center;padding:22px}
+.modal-bg.open{display:flex;animation:fade .22s ease}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:18px;padding:28px;max-width:460px;width:100%;box-shadow:var(--shadow);position:relative}
+.modal h3{font-family:var(--font-display);font-size:19px;font-weight:700;margin-bottom:5px}
+.modal .x{position:absolute;top:15px;right:17px;background:none;border:0;color:var(--txt3);font-size:18px;cursor:pointer}
+.qr{width:172px;height:172px;margin:18px auto;border-radius:12px;background:#fff;display:grid;place-items:center}
+.qr canvas{width:150px;height:150px}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px}
+.feat-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:21px;transition:.18s;position:relative;overflow:hidden}
+.feat-card:hover{transform:translateY(-3px);border-color:rgba(99,102,241,.4)}
+.feat-card .fh{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.feat-card .fi{width:37px;height:37px;border-radius:11px;display:grid;place-items:center;font-size:16px}
+.feat-card h4{font-family:var(--font-display);font-size:15.5px;font-weight:700}
+.feat-card ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.feat-card li{display:flex;gap:8px;font-size:12.6px;color:var(--txt2);font-weight:500}
+.feat-card li::before{content:"◆";color:var(--indigo2);font-size:8px;line-height:1.9}
+.arch{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:13px}
+.arch-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:19px}
+.arch-card .an{font-family:var(--font-mono);font-size:10.5px;color:var(--indigo2);font-weight:700;letter-spacing:.12em}
+.arch-card h4{font-family:var(--font-display);font-size:15px;font-weight:700;margin:7px 0 7px}
+.arch-card p{font-size:12.3px;color:var(--txt2)}
+footer{border-top:1px solid var(--line);margin-top:50px;padding:38px 24px;text-align:center;color:var(--txt3);font-size:12.5px}
+footer b{color:var(--txt2)}
+.scroll-x{overflow-x:auto}
+.mini{font-size:11px;color:var(--txt3)}
+.glow-card{position:relative}
+.glow-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:linear-gradient(135deg,rgba(99,102,241,.5),transparent 45%,rgba(56,189,248,.35));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:.25s;pointer-events:none}
+.glow-card:hover::before{opacity:1}
+@media (max-width:1020px){
+  .app-shell{grid-template-columns:1fr}
+  .sidebar{display:flex;flex-direction:row;overflow-x:auto;gap:5px;padding:11px}
+  .side-brand,.nav-sep{display:none}
+  .nav-item{white-space:nowrap}
+  .g5,.g4{grid-template-columns:repeat(2,1fr)}
+  .pdv{grid-template-columns:1fr}
+  .topnav{display:none}
+}
+@media (max-width:640px){
+  .g3,.g2{grid-template-columns:1fr}
+  .hero{padding-top:52px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top">
+      <div class="brand-mark">L</div>
+      <div class="brand-name">L Gestão<small>mockup interativo</small></div>
+    </a>
+    <nav class="topnav">
+      <a href="#app">Aplicação</a>
+      <a href="#features">Funcionalidades</a>
+      <a href="#arch">Arquitetura</a>
+      <a href="#quality">Qualidade</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" title="Alternar tema">◐</button>
+    <a class="btn btn-primary btn-sm" href="#app">Explorar telas</a>
+  </div>
+</div>
+
+<header class="hero" id="top">
+  <div class="eyebrow"><span class="dot"></span> SaaS multi-empresa · 100% funcional · TDD</div>
+  <h1>Estoque, vendas e financeiro <span class="grad">sem perder o lote</span> de vista.</h1>
+  <p class="lead">
+    L Gestão controla múltiplas empresas (matriz, filiais e postos) com isolamento total por RLS,
+    rastreabilidade lote → venda → cliente, PDV com caixa integrado e workflow de transferências.
+    Este mockup reproduz <b>todas as telas e funcionalidades</b> entregues — clique e navegue.
+  </p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="#app">🚀 Abrir a aplicação</a>
+    <a class="btn btn-ghost" href="#features">Ver funcionalidades</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="n">449</div><div class="l">testes automatizados</div></div>
+    <div class="stat"><div class="n">14</div><div class="l">telas navegáveis</div></div>
+    <div class="stat"><div class="n">40+</div><div class="l">tabelas com RLS</div></div>
+    <div class="stat"><div class="n">13</div><div class="l">módulos contratáveis</div></div>
+    <div class="stat"><div class="n">3</div><div class="l">níveis de unidade</div></div>
+  </div>
+</header>
+
+<section class="section" id="app">
+  <div class="section-head">
+    <div class="kicker">Aplicação · clique na lateral</div>
+    <h2>Todas as telas, navegáveis</h2>
+    <p>O app real usa Next.js + Server Components + RLS. Aqui você interage com cada tela:
+      troque de módulo na sidebar, mova transferências pelo workflow, venda no PDV e altere os módulos contratados.</p>
+  </div>
+
+  <div class="frame">
+    <div class="frame-bar">
+      <div class="tl r"></div><div class="tl y"></div><div class="tl g"></div>
+      <div class="frame-url" id="frameUrl">https://l-gestao.vercel.app/painel</div>
+    </div>
+    <div class="app-shell">
+      <aside class="sidebar" id="sideNav">
+        <div class="side-brand">
+          <div class="brand-mark">L</div>
+          <div><b>L Gestão</b><span>Empresa Demo</span></div>
+        </div>
+        <div class="nav-sep">Geral</div>
+        <div class="nav-item active" data-screen="painel"><span class="ico">🏠</span> Painel</div>
+        <div class="nav-item" data-screen="dashboard"><span class="ico">📊</span> Dashboard</div>
+        <div class="nav-sep">Operação</div>
+        <div class="nav-item" data-screen="estoque"><span class="ico">📦</span> Estoque</div>
+        <div class="nav-item" data-screen="produtos"><span class="ico">🏷️</span> Produtos</div>
+        <div class="nav-item" data-screen="unidades"><span class="ico">🏢</span> Unidades</div>
+        <div class="nav-item" data-screen="lotes"><span class="ico">⏳</span> Lotes</div>
+        <div class="nav-item" data-screen="transferencias"><span class="ico">🔁</span> Transferências</div>
+        <div class="nav-sep">Comercial</div>
+        <div class="nav-item" data-screen="vendas"><span class="ico">🧾</span> Vendas</div>
+        <div class="nav-item" data-screen="pdv"><span class="ico">💳</span> PDV</div>
+        <div class="nav-item" data-screen="compras"><span class="ico">🛒</span> Compras</div>
+        <div class="nav-item" data-screen="financeiro"><span class="ico">💰</span> Financeiro</div>
+        <div class="nav-sep">Análise</div>
+        <div class="nav-item" data-screen="relatorios"><span class="ico">📈</span> Relatórios</div>
+        <div class="nav-sep">Administração</div>
+        <div class="nav-item" data-screen="modulos"><span class="ico">🧩</span> Módulos</div>
+        <div class="nav-item" data-screen="equipe"><span class="ico">👥</span> Equipe</div>
+      </aside>
+
+      <div class="screen-wrap">
+
+        <!-- PAINEL -->
+        <div class="screen active" id="s-painel">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Bom dia, Administrador 👋</div>
+              <div class="page-sub">Empresa Demo · 2FA ativo · sessão protegida por cookie httpOnly</div>
+            </div>
+            <div class="pill-row">
+              <span class="badge b-indigo">MATRIZ_POSTOS</span>
+              <span class="badge b-sky">TRANSFERENCIAS</span>
+              <span class="badge b-amber">LOTES_VALIDADE</span>
+              <span class="badge b-emerald">PDV</span>
+            </div>
+          </div>
+          <div class="grid g4">
+            <div class="card kpi glow-card"><h3>Vendas hoje</h3><div class="v">R$ 68,90</div><div class="d up">▲ 3 vendas no caixa</div></div>
+            <div class="card kpi glow-card"><h3>Estoque (valor)</h3><div class="v">R$ 1.536,99</div><div class="d muted">4 produtos · 3 lotes</div></div>
+            <div class="card kpi glow-card"><h3>A receber</h3><div class="v">R$ 46,80</div><div class="d down">1 título vencido</div></div>
+            <div class="card kpi glow-card"><h3>Caixa</h3><div class="v">Aberto</div><div class="d up">esperado R$ 68,90</div></div>
+          </div>
+          <div class="grid g2" style="margin-top:13px">
+            <div class="card">
+              <h3>Atalhos operacionais</h3>
+              <div class="grid g2">
+                <button class="btn btn-primary btn-sm" onclick="go('pdv')">Abrir PDV (F1)</button>
+                <button class="btn btn-ghost btn-sm" onclick="go('vendas')">Nova venda</button>
+                <button class="btn btn-ghost btn-sm" onclick="go('transferencias')">Transferir estoque</button>
+                <button class="btn btn-ghost btn-sm" onclick="go('lotes')">Ver alertas de validade</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Unidades da empresa</h3>
+              <table>
+                <tbody>
+                  <tr><td class="t-strong">Matriz Campinas</td><td><span class="badge b-indigo">MATRIZ</span></td><td class="t-right mini">padrão</td></tr>
+                  <tr><td class="t-strong">Filial São Paulo</td><td><span class="badge b-sky">FILIAL</span></td><td class="t-right mini">12 itens</td></tr>
+                  <tr><td class="t-strong">Posto Campinas</td><td><span class="badge b-amber">POSTO</span></td><td class="t-right mini">4 itens</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div class="screen" id="s-dashboard">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Dashboard</div>
+              <div class="page-sub">Período 05/09 → 05/10 · 30 dias · gráfico, funil, alertas e ranking</div>
+            </div>
+            <div class="pill-row"><button class="btn btn-ghost btn-sm">Exportar</button></div>
+          </div>
+          <div class="grid g5">
+            <div class="card kpi"><h3>Faturamento</h3><div class="v">R$ 193,50</div><div class="d up">▲ 4 vendas</div></div>
+            <div class="card kpi"><h3>Ticket médio</h3><div class="v">R$ 48,38</div><div class="d muted">por pedido faturado</div></div>
+            <div class="card kpi"><h3>A receber</h3><div class="v">R$ 46,80</div><div class="d muted">em aberto</div></div>
+            <div class="card kpi"><h3>Inadimplência</h3><div class="v">R$ 46,80</div><div class="d down">1 título vencido</div></div>
+            <div class="card kpi"><h3>Itens críticos</h3><div class="v">1</div><div class="d down">abaixo do mínimo</div></div>
+          </div>
+          <div class="grid g2" style="margin-top:13px">
+            <div class="card">
+              <h3>Faturamento diário (30 dias)</h3>
+              <div class="bars" id="dashBars"></div>
+            </div>
+            <div class="card">
+              <h3>Funil de vendas</h3>
+              <div class="funnel-row"><div class="lbl">Rascunho</div><div class="track"><i style="width:8%;background:#64748b">0</i></div></div>
+              <div class="funnel-row"><div class="lbl">Confirmada</div><div class="track"><i style="width:6%;background:#38bdf8">0</i></div></div>
+              <div class="funnel-row"><div class="lbl">Faturada</div><div class="track"><i style="width:100%;background:linear-gradient(90deg,#34d399,#059669)">4 · 100%</i></div></div>
+              <div class="funnel-row"><div class="lbl">Cancelada</div><div class="track"><i style="width:5%;background:#fb7185">0</i></div></div>
+              <div class="funnel-row"><div class="lbl">Devolvida</div><div class="track"><i style="width:5%;background:#fbbf24">0</i></div></div>
+              <div class="divider"></div>
+              <h3>Top vendedores</h3>
+              <table>
+                <tbody>
+                  <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:#6366f1">MA</div><b>Marcos Silva</b></div></td><td class="t-right">2 pedidos</td><td class="t-right t-strong">R$ 84,60</td></tr>
+                  <tr><td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:#0ea5e9">AN</div><b>Ana Souza</b></div></td><td class="t-right">1 pedido</td><td class="t-right t-strong">R$ 46,80</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="margin-top:13px">
+            <h3>⚠️ Alertas</h3>
+            <div class="pill-row">
+              <span class="badge b-rose">1 item crítico (abaixo do mínimo)</span>
+              <span class="badge b-amber">2 lotes vencem em 30 dias</span>
+              <span class="badge b-orange">1 título vencido há 2 dias</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ESTOQUE -->
+        <div class="screen" id="s-estoque">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Estoque</div>
+              <div class="page-sub">Saldos por produto e unidade · livro imutável de movimentações</div>
+            </div>
+            <div class="pill-row">
+              <span class="badge b-emerald">R$ 1.536,99 em valor</span>
+              <span class="badge b-slate">4 produtos</span>
+            </div>
+          </div>
+          <div class="grid g4" style="margin-bottom:13px">
+            <div class="card kpi"><h3>Físico total</h3><div class="v">122</div><div class="d muted">unidades</div></div>
+            <div class="card kpi"><h3>Reservado</h3><div class="v">0</div><div class="d up">nenhuma reserva ativa</div></div>
+            <div class="card kpi"><h3>Críticos</h3><div class="v">1</div><div class="d down">mínimo atingido</div></div>
+            <div class="card kpi"><h3>Lotes ativos</h3><div class="v">3</div><div class="d muted">2 com validade</div></div>
+          </div>
+          <div class="card">
+            <h3>Saldos por depósito</h3>
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Produto</th><th>Unidade</th><th class="t-right">Físico</th><th class="t-right">Reservado</th><th class="t-right">Disponível</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-strong">Café Torrado 500g</td><td>Matriz Campinas</td><td class="t-right t-mono">46</td><td class="t-right t-mono">0</td><td class="t-right t-mono t-strong">46</td><td><span class="badge b-emerald">OK</span></td></tr>
+                  <tr><td class="t-strong">Dipirona 500mg</td><td>Matriz Campinas</td><td class="t-right t-mono">40</td><td class="t-right t-mono">0</td><td class="t-right t-mono t-strong">40</td><td><span class="badge b-emerald">OK</span></td></tr>
+                  <tr><td class="t-strong">Água Mineral 500ml</td><td>Filial São Paulo</td><td class="t-right t-mono">12</td><td class="t-right t-mono">0</td><td class="t-right t-mono t-strong">12</td><td><span class="badge b-amber">BAIXO</span></td></tr>
+                  <tr><td class="t-strong">Shampoo 350ml</td><td>Posto Campinas</td><td class="t-right t-mono">24</td><td class="t-right t-mono">0</td><td class="t-right t-mono t-strong">24</td><td><span class="badge b-rose">CRÍTICO</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" style="margin-top:13px">
+            <h3>Últimas movimentações (livro)</h3>
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Quando</th><th>Tipo</th><th>Produto</th><th>Unidade</th><th class="t-right">Qtd</th><th class="t-right">Total</th></tr></thead>
+                <tbody>
+                  <tr><td class="mini">05/10 09:12</td><td><span class="badge b-emerald">SAÍDA_VENDA</span></td><td>Café Torrado 500g</td><td>Matriz</td><td class="t-right t-mono">2</td><td class="t-right t-mono">R$ 33,00</td></tr>
+                  <tr><td class="mini">05/10 08:40</td><td><span class="badge b-sky">TRANSF_ENTRADA</span></td><td>Shampoo 350ml</td><td>Posto Campinas</td><td class="t-right t-mono">10</td><td class="t-right t-mono">R$ 82,50</td></tr>
+                  <tr><td class="mini">04/10 17:22</td><td><span class="badge b-indigo">ENTRADA_COMPRA</span></td><td>Dipirona 500mg</td><td>Matriz</td><td class="t-right t-mono">10</td><td class="t-right t-mono">R$ 125,00</td></tr>
+                  <tr><td class="mini">04/10 16:58</td><td><span class="badge b-violet">TRANSF_SAÍDA</span></td><td>Shampoo 350ml</td><td>Matriz</td><td class="t-right t-mono">10</td><td class="t-right t-mono">R$ 82,50</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mini" style="margin-top:10px">🔒 Tabela <span class="mono">stock_movements</span> é append-only (somente INSERT/SELECT). Correções viram novos movimentos.</div>
+          </div>
+        </div>
+
+        <!-- PRODUTOS -->
+        <div class="screen" id="s-produtos">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Produtos</div>
+              <div class="page-sub">SKU, código de barras, lote, kits e preços (dinheiro em centavos)</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ Novo produto</button>
+          </div>
+          <div class="card">
+            <div class="grid g3" style="margin-bottom:14px">
+              <div class="field"><label>Buscar</label><input placeholder="SKU, nome ou código de barras"></div>
+              <div class="field"><label>Status</label><select><option>Ativos</option><option>Inativos</option><option>Descontinuados</option></select></div>
+              <div class="field"><label>Categoria</label><select><option>Todas</option><option>Medicamentos</option><option>Bebidas</option><option>Higiene</option></select></div>
+            </div>
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>SKU</th><th>Produto</th><th>Barcode</th><th class="t-right">Custo</th><th class="t-right">Venda</th><th class="t-right">Margem</th><th>Flags</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-mono">CAF-500</td><td class="t-strong">Café Torrado 500g</td><td class="t-mono">7891000100103</td><td class="t-right t-mono">R$ 16,50</td><td class="t-right t-mono">R$ 24,90</td><td class="t-right up">50,9%</td><td><span class="badge b-slate">—</span></td></tr>
+                  <tr><td class="t-mono">DIP-500</td><td class="t-strong">Dipirona 500mg</td><td class="t-mono">7891317003128</td><td class="t-right t-mono">R$ 8,90</td><td class="t-right t-mono">R$ 12,50</td><td class="t-right up">40,4%</td><td><span class="badge b-amber">LOTE</span> <span class="badge b-violet">RECEITA</span></td></tr>
+                  <tr><td class="t-mono">AGU-500</td><td class="t-strong">Água Mineral 500ml</td><td class="t-mono">7891910000197</td><td class="t-right t-mono">R$ 1,20</td><td class="t-right t-mono">R$ 2,50</td><td class="t-right up">108,3%</td><td><span class="badge b-slate">—</span></td></tr>
+                  <tr><td class="t-mono">SHP-350</td><td class="t-strong">Shampoo 350ml</td><td class="t-mono">7896004700312</td><td class="t-right t-mono">R$ 8,25</td><td class="t-right t-mono">R$ 15,90</td><td class="t-right up">92,7%</td><td><span class="badge b-amber">LOTE</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mini" style="margin-top:10px">💵 Dinheiro em <b>centavos</b> no servidor (integers) — nunca float. Quantidades com 3 casas decimais.</div>
+          </div>
+        </div>
+        <!-- UNIDADES -->
+        <div class="screen" id="s-unidades">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Unidades <span class="badge b-indigo">MATRIZ_POSTOS</span></div>
+              <div class="page-sub">Hierarquia MATRIZ → FILIAL → POSTO · responsável · acesso por usuário · estoque-alvo</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ Nova unidade</button>
+          </div>
+          <div class="card">
+            <h3>Estrutura da empresa</h3>
+            <div class="steps" style="margin:6px 0 14px">
+              <div class="step done"><div class="ball">1</div><div><div class="lbl">Matriz Campinas</div></div><div class="line"></div></div>
+              <div class="step done"><div class="ball">2</div><div><div class="lbl">Filial São Paulo</div></div><div class="line"></div></div>
+              <div class="step current"><div class="ball">3</div><div><div class="lbl">Posto Campinas</div></div></div>
+            </div>
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th>Unidade pai</th><th>Responsável</th><th class="t-right">Ações</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-mono">MATRIZ-01</td><td class="t-strong">Matriz Campinas</td><td><span class="badge b-indigo">MATRIZ</span></td><td>—</td><td>João Gerente</td><td class="t-right"><span class="badge b-emerald">padrão</span></td></tr>
+                  <tr><td class="t-mono">FILIAL-SP</td><td class="t-strong">Filial São Paulo</td><td><span class="badge b-sky">FILIAL</span></td><td>Matriz Campinas</td><td>Maria Souza</td><td class="t-right mini">gerenciar</td></tr>
+                  <tr><td class="t-mono">POSTO-CPS</td><td class="t-strong">Posto Campinas</td><td><span class="badge b-amber">POSTO</span></td><td>Filial São Paulo</td><td>Carlos Lima</td><td class="t-right mini">gerenciar</td></tr>
+                  <tr><td class="t-mono">POSTO-STO</td><td class="t-strong">Posto Santos</td><td><span class="badge b-amber">POSTO</span></td><td>Filial São Paulo</td><td>Ana Costa</td><td class="t-right mini">gerenciar</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="grid g2" style="margin-top:13px">
+            <div class="card">
+              <h3>🔐 Acesso por usuário (Posto Campinas)</h3>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="display:flex;align-items:center;gap:9px;font-size:12.5px"><input type="checkbox" checked> Carlos Lima · VENDEDOR</label>
+                <label style="display:flex;align-items:center;gap:9px;font-size:12.5px"><input type="checkbox" checked> Ana Costa · ESTOQUISTA</label>
+                <label style="display:flex;align-items:center;gap:9px;font-size:12.5px"><input type="checkbox"> Maria Souza · GERENTE</label>
+              </div>
+              <div class="mini" style="margin-top:10px">👤 Posto A <b>não enxerga</b> Posto B. Usuário sem marcação enxerga tudo (default amplo). ADMIN sempre vê tudo.</div>
+            </div>
+            <div class="card">
+              <h3>🎯 Estoque-alvo · Dipirona 500mg</h3>
+              <div class="grid g3">
+                <div class="field"><label>Mínimo</label><input value="5"></div>
+                <div class="field"><label>Máximo</label><input value="20"></div>
+                <div class="field"><label>Reposição</label><input value="10"></div>
+              </div>
+              <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="toast('Estoque-alvo salvo.')">Salvar alvo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOTES -->
+        <div class="screen" id="s-lotes">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Lotes e Validade <span class="badge b-amber">LOTES_VALIDADE</span></div>
+              <div class="page-sub">Saldos por lote · alertas configuráveis · rastreio lote → venda → cliente</div>
+            </div>
+            <span class="badge b-amber">Janela de alerta: 7, 30, 90 dias</span>
+          </div>
+          <div class="card" style="border-color:rgba(251,146,60,.4);background:linear-gradient(135deg,var(--orange-dim),transparent)">
+            <h3 style="color:var(--orange)">⚠️ Alertas de validade (2)</h3>
+            <div class="pill-row">
+              <span class="badge b-rose">Dipirona 500mg · lote L2025-09 · vence em 5d</span>
+              <span class="badge b-orange">Café Torrado · lote L2026-01 · vence em 22d</span>
+            </div>
+          </div>
+          <div class="card" style="margin-top:13px">
+            <h3>Lotes com saldo</h3>
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Produto</th><th>Lote</th><th>Validade</th><th>Status</th><th class="t-right">Saldo</th><th>Unidades</th><th class="t-right">Ações</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-strong">Dipirona 500mg</td><td class="t-mono">L2025-09</td><td>10/10/2026 <span class="mini">(5d)</span></td><td><span class="badge b-amber">PRÓXIMO</span></td><td class="t-right t-mono">40</td><td class="mini">Matriz: 40</td><td class="t-right"><span class="mini" style="cursor:pointer;color:var(--indigo2)" onclick="toast('Rastreio do lote: 50 entradas · 10 saídas · 3 vendas · 2 clientes.')">rastrear →</span></td></tr>
+                  <tr><td class="t-strong">Café Torrado 500g</td><td class="t-mono">L2026-01</td><td>27/10/2026 <span class="mini">(22d)</span></td><td><span class="badge b-orange">CRÍTICO</span></td><td class="t-right t-mono">46</td><td class="mini">Matriz: 46</td><td class="t-right"><span class="mini" style="cursor:pointer;color:var(--indigo2)" onclick="toast('Rastreio do lote: 60 entradas · 14 saídas · 5 vendas · 3 clientes.')">rastrear →</span></td></tr>
+                  <tr><td class="t-strong">Shampoo 350ml</td><td class="t-mono">L2027-03</td><td>15/03/2027</td><td><span class="badge b-emerald">OK</span></td><td class="t-right t-mono">24</td><td class="mini">Posto: 24</td><td class="t-right"><span class="mini" style="cursor:pointer;color:var(--indigo2)" onclick="toast('Rastreio do lote: 10 entradas (transferência) · 0 saídas.')">rastrear →</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="grid g2" style="margin-top:13px">
+            <div class="card">
+              <h3>🔎 Rastreio do lote L2025-09</h3>
+              <div class="grid g5" style="gap:8px">
+                <div><div class="mini">Entradas</div><b>50</b></div>
+                <div><div class="mini">Saídas</div><b>10</b></div>
+                <div><div class="mini">Saldo</div><b>40</b></div>
+                <div><div class="mini">Vendas</div><b>3</b></div>
+                <div><div class="mini">Clientes</div><b style="font-size:10px">2</b></div>
+              </div>
+              <div class="divider"></div>
+              <table>
+                <tbody>
+                  <tr><td class="mini">04/10</td><td><span class="badge b-rose">SAÍDA_VENDA</span></td><td>3</td><td class="mini">VENDA-000004 · Mercado São João</td></tr>
+                  <tr><td class="mini">02/10</td><td><span class="badge b-indigo">ENTRADA_COMPRA</span></td><td>50</td><td class="mini">COMPRA-000001</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <h3>🖨️ Etiqueta do lote (50×30mm)</h3>
+              <div style="border:1.5px dashed var(--line2);border-radius:10px;padding:12px 14px;font-family:var(--font-mono);font-size:11px;max-width:230px;background:var(--bg2)">
+                <div style="font-size:9px;letter-spacing:.14em;color:var(--txt3)">EMPRESA DEMO</div>
+                <div style="font-weight:700;font-size:11.5px;margin:5px 0">Dipirona 500mg</div>
+                <div><b>Lote:</b> L2025-09</div>
+                <div><b>Validade:</b> 10/10/2026</div>
+                <div><b>Qtd:</b> 40</div>
+                <div><b>Cód:</b> 7891317003128</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="toast('Enviado para impressão (simulação).')">Imprimir etiqueta</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRANSFERÊNCIAS (interativo) -->
+        <div class="screen" id="s-transferencias">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Transferências <span class="badge b-sky">TRANSFERENCIAS</span></div>
+              <div class="page-sub">Fluxo simples (imediato) ou workflow com envio e recebimento · modo de baixa escolhível</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ Nova transferência</button>
+          </div>
+          <div class="card glow-card">
+            <div class="page-head" style="margin-bottom:4px">
+              <div>
+                <div class="page-title" style="font-size:17px"><span class="mono">TRANSF-000001</span> <span id="trBadge" class="badge b-amber">RASCUNHO</span></div>
+                <div class="page-sub">Matriz Campinas → Posto Campinas · baixa na origem <b>ao enviar</b> · 10 × Shampoo 350ml (L2027-03)</div>
+              </div>
+            </div>
+            <div class="steps" id="trSteps">
+              <div class="step current" data-step="0"><div class="ball">1</div><div class="lbl">Rascunho</div><div class="line"></div></div>
+              <div class="step" data-step="1"><div class="ball">2</div><div class="lbl">Enviada</div><div class="line"></div></div>
+              <div class="step" data-step="2"><div class="ball">3</div><div class="lbl">Recebida</div></div>
+            </div>
+            <div class="pill-row" id="trActions">
+              <button class="btn btn-primary btn-sm" onclick="trSend()">📦 Enviar</button>
+              <button class="btn btn-danger btn-sm" onclick="trCancel()">Cancelar</button>
+            </div>
+            <div class="mini" id="trHint" style="margin-top:10px">💡 Ao enviar, o estoque da origem já dá baixa (material em trânsito fica fora dos dois lados). Clique para simular.</div>
+          </div>
+          <div class="card" style="margin-top:13px">
+            <h3>Histórico</h3>
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Número</th><th>Rota</th><th>Status</th><th>Modo</th><th class="t-right">Itens</th><th>Criada em</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-mono">TRANSF-000001</td><td>Matriz → Posto Campinas</td><td id="trRowBadge"><span class="badge b-amber">RASCUNHO</span></td><td class="mini">baixa no envio</td><td class="t-right">1</td><td class="mini">05/10 10:02</td></tr>
+                  <tr><td class="t-mono">TRANSF-000002</td><td>Matriz → Filial SP</td><td><span class="badge b-emerald">RECEBIDA</span></td><td class="mini">baixa no envio</td><td class="t-right">2</td><td class="mini">04/10 15:20</td></tr>
+                  <tr><td class="t-mono">TRANSF-000003</td><td>Filial SP → Posto Santos</td><td><span class="badge b-rose">CANCELADA</span></td><td class="mini">baixa no recebimento</td><td class="t-right">1</td><td class="mini">03/10 11:45</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VENDAS -->
+        <div class="screen" id="s-vendas">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Vendas</div>
+              <div class="page-sub">DRAFT → CONFIRMED → BILLED · reserva no confirmar · baixa no faturar</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ Nova venda</button>
+          </div>
+          <div class="tabs" data-tabs="vendas">
+            <div class="tab active" data-tab="v-lista">Todas</div>
+            <div class="tab" data-tab="v-form">Formulário</div>
+            <div class="tab" data-tab="v-cupom">Cupom</div>
+          </div>
+          <div class="tab-panel active" data-panel="v-lista">
+            <div class="card">
+              <div class="scroll-x">
+                <table>
+                  <thead><tr><th>Número</th><th>Cliente</th><th>Status</th><th>Unidade</th><th class="t-right">Total</th><th>Origem</th></tr></thead>
+                  <tbody>
+                    <tr><td class="t-mono t-strong">VENDA-000005</td><td>Mercado São João</td><td><span class="badge b-emerald">FATURADA</span></td><td>Matriz</td><td class="t-right t-mono">R$ 37,80</td><td><span class="badge b-indigo">PDV</span></td></tr>
+                    <tr><td class="t-mono t-strong">VENDA-000004</td><td>Farmácia Vida</td><td><span class="badge b-emerald">FATURADA</span></td><td>Matriz</td><td class="t-right t-mono">R$ 46,80</td><td><span class="badge b-slate">VENDA</span></td></tr>
+                    <tr><td class="t-mono t-strong">VENDA-000003</td><td>—</td><td><span class="badge b-sky">CONFIRMADA</span></td><td>Filial SP</td><td class="t-right t-mono">R$ 136,80</td><td><span class="badge b-slate">VENDA</span></td></tr>
+                    <tr><td class="t-mono t-strong">VENDA-000002</td><td>Loja do Zé</td><td><span class="badge b-rose">CANCELADA</span></td><td>Matriz</td><td class="t-right t-mono">R$ 18,90</td><td><span class="badge b-slate">VENDA</span></td></tr>
+                    <tr><td class="t-mono t-strong">VENDA-000001</td><td>—</td><td><span class="badge b-slate">RASCUNHO</span></td><td>Matriz</td><td class="t-right t-mono">R$ 12,50</td><td><span class="badge b-slate">VENDA</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="mini" style="margin-top:10px">🔒 Pós-FATURADA é imutável — correção só por devolução/estorno. Desconto limitado pelo papel (vendedor/gerente).</div>
+            </div>
+          </div>
+          <div class="tab-panel" data-panel="v-form">
+            <div class="grid g2">
+              <div class="card">
+                <h3>Itens da venda</h3>
+                <table>
+                  <thead><tr><th>Produto</th><th class="t-right">Qtd</th><th class="t-right">Unitário</th><th class="t-right">Total</th></tr></thead>
+                  <tbody>
+                    <tr><td>Café Torrado 500g <span class="mini t-mono">CAF-500</span></td><td class="t-right t-mono">2</td><td class="t-right t-mono">R$ 24,90</td><td class="t-right t-mono t-strong">R$ 49,80</td></tr>
+                    <tr><td>Dipirona 500mg <span class="mini t-mono">DIP-500</span></td><td class="t-right t-mono">1</td><td class="t-right t-mono">R$ 12,50</td><td class="t-right t-mono t-strong">R$ 12,50</td></tr>
+                  </tbody>
+                </table>
+                <div class="mini" style="margin-top:10px">⌨️ Leitor USB de código de barras (Enter adiciona/incrementa). Kit baixa componentes no faturamento.</div>
+              </div>
+              <div class="card">
+                <h3>Resumo</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                  <div style="display:flex;justify-content:space-between"><span class="muted">Subtotal</span><b>R$ 62,30</b></div>
+                  <div style="display:flex;justify-content:space-between"><span class="muted">Desconto (5%)</span><b class="up">− R$ 3,12</b></div>
+                  <div class="divider" style="margin:6px 0"></div>
+                  <div style="display:flex;justify-content:space-between;font-size:17px"><b>Total</b><b class="mono">R$ 59,18</b></div>
+                </div>
+                <div class="pill-row" style="margin-top:15px">
+                  <button class="btn btn-ghost btn-sm">Salvar rascunho</button>
+                  <button class="btn btn-primary btn-sm" onclick="toast('Venda confirmada — estoque reservado.')">Confirmar</button>
+                  <button class="btn btn-success btn-sm" onclick="toast('Venda faturada — baixa + conta a receber.')">Faturar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" data-panel="v-cupom">
+            <div class="card" style="max-width:320px">
+              <div style="font-family:var(--font-mono);font-size:10.5px;line-height:1.7">
+                <div style="text-align:center;font-weight:700">EMPRESA DEMO LTDA</div>
+                <div style="text-align:center">CNPJ 12.345.678/0001-90</div>
+                <div style="text-align:center">──────────────────────</div>
+                <div>CUPOM NÃO FISCAL · VENDA-000005</div>
+                <div>Cliente: Mercado São João</div>
+                <div style="margin:7px 0">──────────────────────</div>
+                <div>2x CAFÉ TORRADO 500G ... 49,80</div>
+                <div>1x DIP-500 ............. 12,50</div>
+                <div style="margin:7px 0">──────────────────────</div>
+                <div style="display:flex;justify-content:space-between"><b>TOTAL</b><b>R$ 37,80</b></div>
+                <div>Pago: DINHEIRO 50,00 · Troco 12,20</div>
+                <div style="text-align:center;margin-top:8px">*** NAO E DOCUMENTO FISCAL ***</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="margin-top:12px;width:100%" onclick="toast('Cupom 80mm enviado à impressora (simulação).')">🖨️ Imprimir cupom (80mm)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PDV (interativo) -->
+        <div class="screen" id="s-pdv">
+          <div class="page-head">
+            <div>
+              <div class="page-title">PDV — Frente de caixa</div>
+              <div class="page-sub">Atalhos F1–F9 · PIX QR · caixa integrado · venda → faturamento numa transação</div>
+            </div>
+            <div class="pill-row">
+              <span class="badge b-emerald">Caixa aberto · #1</span>
+              <span class="badge b-indigo">F5 = finalizar</span>
+            </div>
+          </div>
+          <div class="pdv">
+            <div>
+              <div class="card">
+                <div class="field" style="margin-bottom:11px">
+                  <label>🔍 Buscar produto (código de barras ou nome) — F2</label>
+                  <input id="pdvSearch" placeholder="7891000100103 ou 'café'…">
+                </div>
+                <div class="grid g4" id="pdvGrid"></div>
+              </div>
+              <div class="card" style="margin-top:13px">
+                <h3>Atalhos</h3>
+                <div class="keys">
+                  <div class="key" onclick="toast('F1 — Ajuda de atalhos.')">F1<b>Ajuda</b></div>
+                  <div class="key" onclick="focusSearch()">F2<b>Busca</b></div>
+                  <div class="key" onclick="toast('F3 — Quantidade do item.')">F3<b>Qtd</b></div>
+                  <div class="key" onclick="toast('F4 — Desconto (limite por papel).')">F4<b>Desconto</b></div>
+                  <div class="key" onclick="finishSale()">F5<b>Finalizar</b></div>
+                  <div class="key" onclick="toast('F6 — Selecionar cliente.')">F6<b>Cliente</b></div>
+                  <div class="key" onclick="toast('F7 — Forma de pagamento.')">F7<b>Pagamento</b></div>
+                  <div class="key" onclick="openPix()">F8<b>Cupom/PIX</b></div>
+                  <div class="key" onclick="removeLast()">F9<b>Remover item</b></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="card" style="position:sticky;top:15px">
+                <h3>Carrinho</h3>
+                <div id="pdvCart" style="min-height:110px"></div>
+                <div class="divider"></div>
+                <div class="pdv-total" id="pdvTotal">R$ 0,00</div>
+                <div class="mini">Total da venda</div>
+                <div class="divider"></div>
+                <h3>Pagamento</h3>
+                <div class="pay-grid" id="payGrid">
+                  <button class="pay-btn sel" data-pay="DINHEIRO">💵 Dinheiro</button>
+                  <button class="pay-btn" data-pay="PIX">▣ PIX</button>
+                  <button class="pay-btn" data-pay="DEBITO">💳 Débito</button>
+                  <button class="pay-btn" data-pay="CREDITO">💳 Crédito</button>
+                </div>
+                <div class="grid g2" style="margin-top:11px">
+                  <div class="field"><label>Recebido</label><input id="pdvRecv" placeholder="0,00" oninput="calcTroco()"></div>
+                  <div class="field"><label>Troco</label><input id="pdvTroco" value="0,00" readonly></div>
+                </div>
+                <button class="btn btn-success" style="width:100%;margin-top:13px;justify-content:center;padding:14px;font-size:15px" onclick="finishSale()">✅ Finalizar venda (F5)</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- COMPRAS -->
+        <div class="screen" id="s-compras">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Compras</div>
+              <div class="page-sub">Notas de entrada → confirmação movimenta estoque e gera contas a pagar</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ Nova nota</button>
+          </div>
+          <div class="card">
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Número</th><th>Fornecedor</th><th>Status</th><th>Entrada</th><th class="t-right">Itens</th><th class="t-right">Total</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-mono t-strong">COMPRA-000001</td><td>Fornecedor Demo LTDA</td><td><span class="badge b-emerald">CONFIRMADA</span></td><td>02/10/2026</td><td class="t-right">1</td><td class="t-right t-mono">R$ 125,00</td></tr>
+                  <tr><td class="t-mono t-strong">COMPRA-000002</td><td>Distribuidora Norte</td><td><span class="badge b-rose">CANCELADA</span></td><td>01/10/2026</td><td class="t-right">2</td><td class="t-right t-mono">R$ 30,00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="grid g2" style="margin-top:13px">
+            <div class="card">
+              <h3>Itens · COMPRA-000001</h3>
+              <table>
+                <thead><tr><th>Produto</th><th>Lote</th><th>Validade</th><th class="t-right">Qtd</th><th class="t-right">Custo</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-strong">Dipirona 500mg</td><td class="t-mono">L2025-09</td><td>10/10/2026</td><td class="t-right t-mono">10</td><td class="t-right t-mono">R$ 12,50</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="card">
+              <h3>Contas a pagar geradas</h3>
+              <table>
+                <thead><tr><th>Parcela</th><th>Vencimento</th><th class="t-right">Valor</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>1/3</td><td>02/10/2026</td><td class="t-right t-mono">R$ 41,66</td><td><span class="badge b-emerald">QUITADA</span></td></tr>
+                  <tr><td>2/3</td><td>02/11/2026</td><td class="t-right t-mono">R$ 41,67</td><td><span class="badge b-slate">EM ABERTO</span></td></tr>
+                  <tr><td>3/3</td><td>02/12/2026</td><td class="t-right t-mono">R$ 41,67</td><td><span class="badge b-slate">EM ABERTO</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- FINANCEIRO -->
+        <div class="screen" id="s-financeiro">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Financeiro</div>
+              <div class="page-sub">Contas a receber e pagar · baixa parcial · OVERDUE por cron · 8 indicadores</div>
+            </div>
+          </div>
+          <div class="grid g4" style="margin-bottom:13px">
+            <div class="card kpi"><h3>Em aberto</h3><div class="v">R$ 125,00</div><div class="d muted">3 títulos</div></div>
+            <div class="card kpi"><h3>Vencido</h3><div class="v">R$ 46,80</div><div class="d down">1 título</div></div>
+            <div class="card kpi"><h3>Recebido no mês</h3><div class="v">R$ 84,66</div><div class="d up">▲ 2 baixas</div></div>
+            <div class="card kpi"><h3>Pago no mês</h3><div class="v">R$ 41,66</div><div class="d muted">1 baixa</div></div>
+          </div>
+          <div class="tabs" data-tabs="fin">
+            <div class="tab active" data-panel="fin-rec">A receber</div>
+            <div class="tab" data-panel="fin-pag">A pagar</div>
+          </div>
+          <div class="tab-panel active" data-panel="fin-rec">
+            <div class="card">
+              <div class="scroll-x">
+                <table>
+                  <thead><tr><th>Documento</th><th>Cliente</th><th>Vencimento</th><th class="t-right">Valor</th><th>Status</th><th class="t-right">Ações</th></tr></thead>
+                  <tbody>
+                    <tr><td class="t-mono">VENDA-000004</td><td>Farmácia Vida</td><td>02/10/2026</td><td class="t-right t-mono">R$ 46,80</td><td><span class="badge b-rose">VENCIDA</span></td><td class="t-right"><button class="btn btn-primary btn-sm" onclick="toast('Baixa registrada — título quitado.')">Dar baixa</button></td></tr>
+                    <tr><td class="t-mono">VENDA-000005 · 2/3</td><td>Mercado São João</td><td>05/11/2026</td><td class="t-right t-mono">R$ 12,60</td><td><span class="badge b-slate">EM ABERTO</span></td><td class="t-right"><button class="btn btn-ghost btn-sm" onclick="toast('Baixa parcial de R$ 5,00 registrada.')">Baixa parcial</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="tab-panel" data-panel="fin-pag">
+            <div class="card">
+              <div class="scroll-x">
+                <table>
+                  <thead><tr><th>Documento</th><th>Fornecedor</th><th>Vencimento</th><th class="t-right">Valor</th><th>Status</th></tr></thead>
+                  <tbody>
+                    <tr><td class="t-mono">COMPRA-000001 · 2/3</td><td>Fornecedor Demo LTDA</td><td>02/11/2026</td><td class="t-right t-mono">R$ 41,67</td><td><span class="badge b-slate">EM ABERTO</span></td></tr>
+                    <tr><td class="t-mono">COMPRA-000001 · 3/3</td><td>Fornecedor Demo LTDA</td><td>02/12/2026</td><td class="t-right t-mono">R$ 41,67</td><td><span class="badge b-slate">EM ABERTO</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RELATÓRIOS -->
+        <div class="screen" id="s-relatorios">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Relatórios</div>
+              <div class="page-sub">4 relatórios · filtros e paginação · exportação CSV (BOM + ; + CRLF)</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="toast('CSV gerado (simulação): relatorio-vendas.csv')">⬇️ Exportar CSV</button>
+          </div>
+          <div class="tabs" data-tabs="rel">
+            <div class="tab active" data-panel="rel-est">Estoque</div>
+            <div class="tab" data-panel="rel-ven">Vendas</div>
+            <div class="tab" data-panel="rel-com">Compras</div>
+            <div class="tab" data-panel="rel-fin">Financeiro</div>
+          </div>
+          <div class="tab-panel active" data-panel="rel-est">
+            <div class="grid g3" style="margin-bottom:13px">
+              <div class="card kpi"><h3>Valor em estoque</h3><div class="v">R$ 1.536,99</div><div class="d muted">4 itens</div></div>
+              <div class="card kpi"><h3>Críticos</h3><div class="v">1</div><div class="d down">repor</div></div>
+              <div class="card kpi"><h3>Baixos</h3><div class="v">1</div><div class="d muted">atenção</div></div>
+            </div>
+            <div class="card">
+              <table>
+                <thead><tr><th>Produto</th><th class="t-right">Saldo</th><th class="t-right">Mínimo</th><th class="t-right">Custo ref.</th><th class="t-right">Valor total</th><th>Nível</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-strong">Café Torrado 500g</td><td class="t-right t-mono">46</td><td class="t-right t-mono">10</td><td class="t-right t-mono">R$ 16,50</td><td class="t-right t-mono">R$ 759,00</td><td><span class="badge b-emerald">OK</span></td></tr>
+                  <tr><td class="t-strong">Dipirona 500mg</td><td class="t-right t-mono">40</td><td class="t-right t-mono">5</td><td class="t-right t-mono">R$ 8,90</td><td class="t-right t-mono">R$ 356,00</td><td><span class="badge b-emerald">OK</span></td></tr>
+                  <tr><td class="t-strong">Água Mineral 500ml</td><td class="t-right t-mono">12</td><td class="t-right t-mono">20</td><td class="t-right t-mono">R$ 1,20</td><td class="t-right t-mono">R$ 14,40</td><td><span class="badge b-amber">BAIXO</span></td></tr>
+                  <tr><td class="t-strong">Shampoo 350ml</td><td class="t-right t-mono">24</td><td class="t-right t-mono">30</td><td class="t-right t-mono">R$ 8,25</td><td class="t-right t-mono">R$ 198,00</td><td><span class="badge b-rose">CRÍTICO</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" data-panel="rel-ven">
+            <div class="card">
+              <div class="pill-row" style="margin-bottom:12px">
+                <span class="badge b-indigo">agrupar por: dia</span>
+                <span class="badge b-slate">vendedor</span>
+                <span class="badge b-slate">produto</span>
+              </div>
+              <table>
+                <thead><tr><th>Dia</th><th class="t-right">Pedidos</th><th class="t-right">Qtd</th><th class="t-right">Bruto</th><th class="t-right">Desconto</th><th class="t-right">Líquido</th><th class="t-right">Margem</th></tr></thead>
+                <tbody>
+                  <tr><td>05/10/2026</td><td class="t-right">3</td><td class="t-right">6</td><td class="t-right t-mono">R$ 103,50</td><td class="t-right t-mono">R$ 0,00</td><td class="t-right t-mono t-strong">R$ 103,50</td><td class="t-right up">42,1%</td></tr>
+                  <tr><td>04/10/2026</td><td class="t-right">1</td><td class="t-right">2</td><td class="t-right t-mono">R$ 49,80</td><td class="t-right t-mono">R$ 0,00</td><td class="t-right t-mono t-strong">R$ 49,80</td><td class="t-right up">33,5%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" data-panel="rel-com">
+            <div class="card">
+              <table>
+                <thead><tr><th>Fornecedor</th><th class="t-right">Notas</th><th class="t-right">Itens</th><th class="t-right">Total</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-strong">Fornecedor Demo LTDA</td><td class="t-right">1</td><td class="t-right">10</td><td class="t-right t-mono">R$ 125,00</td></tr>
+                  <tr><td class="t-strong">Distribuidora Norte</td><td class="t-right">0</td><td class="t-right">0</td><td class="t-right t-mono">R$ 0,00</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="tab-panel" data-panel="rel-fin">
+            <div class="card">
+              <div class="pill-row" style="margin-bottom:12px">
+                <span class="badge b-emerald">Em aberto R$ 125,00</span>
+                <span class="badge b-rose">Vencido R$ 46,80</span>
+                <span class="badge b-sky">Recebido R$ 84,66</span>
+              </div>
+              <table>
+                <thead><tr><th>Documento</th><th>Parte</th><th>Tipo</th><th>Vencimento</th><th class="t-right">Valor</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td class="t-mono">VENDA-000004</td><td>Farmácia Vida</td><td><span class="badge b-indigo">RECEBER</span></td><td>02/10/2026</td><td class="t-right t-mono">R$ 46,80</td><td><span class="badge b-rose">VENCIDA</span></td></tr>
+                  <tr><td class="t-mono">COMPRA-000001</td><td>Fornecedor Demo LTDA</td><td><span class="badge b-orange">PAGAR</span></td><td>02/11/2026</td><td class="t-right t-mono">R$ 41,67</td><td><span class="badge b-slate">EM ABERTO</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÓDULOS -->
+        <div class="screen" id="s-modulos">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Módulos contratados <span class="badge b-violet">Núcleo SaaS</span></div>
+              <div class="page-sub">O menu e as telas mudam conforme o que está ativo · assinatura TRIAL incluída</div>
+            </div>
+            <span class="badge b-emerald" id="modCount">Assinatura: TRIAL · 13/13 módulos</span>
+          </div>
+          <div class="grid g4" id="modGrid"></div>
+          <div class="mini" style="margin-top:12px">🧩 Toggle exige <span class="mono">settings.manage</span> + grava <span class="mono">audit()</span> (MODULO_ATIVADO/DESATIVADO). Gate de servidor em cada rota.</div>
+        </div>
+
+        <!-- EQUIPE -->
+        <div class="screen" id="s-equipe">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Equipe</div>
+              <div class="page-sub">Papéis por empresa · convites por e-mail · 2FA obrigatório para ADMIN · último ADMIN protegido</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ Convidar usuário</button>
+          </div>
+          <div class="card">
+            <div class="scroll-x">
+              <table>
+                <thead><tr><th>Usuário</th><th>Papel</th><th>2FA</th><th>Unidades</th><th class="t-right">Ações</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:#6366f1">AD</div><div><b>Administrador</b><div class="mini">admin@empresa.com.br</div></div></div></td>
+                    <td><span class="badge b-indigo">ADMIN</span></td>
+                    <td><span class="badge b-emerald">ATIVO</span></td>
+                    <td class="mini">todas</td>
+                    <td class="t-right mini">—</td>
+                  </tr>
+                  <tr>
+                    <td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:#0ea5e9">MA</div><div><b>Maria Souza</b><div class="mini">maria@empresa.com.br</div></div></div></td>
+                    <td><span class="badge b-sky">GERENTE</span></td>
+                    <td><span class="badge b-emerald">ATIVO</span></td>
+                    <td class="mini">Matriz, Filial SP</td>
+                    <td class="t-right mini">alterar · remover</td>
+                  </tr>
+                  <tr>
+                    <td><div style="display:flex;align-items:center;gap:9px"><div class="avatar" style="background:#f59e0b">CL</div><div><b>Carlos Lima</b><div class="mini">carlos@empresa.com.br</div></div></div></td>
+                    <td><span class="badge b-amber">VENDEDOR</span></td>
+                    <td><span class="badge b-slate">—</span></td>
+                    <td class="mini">Posto Campinas</td>
+                    <td class="t-right mini">alterar · remover</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mini" style="margin-top:10px">🛡️ RBAC: 22 permissões × 6 papéis-sistema. Vendedor não acessa usuários/configurações; a negação acontece <b>no servidor</b> (403), não só no botão.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+<section class="section" id="features">
+  <div class="section-head">
+    <div class="kicker">Mapa completo</div>
+    <h2>Todas as funcionalidades do sistema</h2>
+    <p>Fases 1–16 + sprints E2–E6 entregues com TDD (regras puras testadas antes da implementação).</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--indigo-dim)">🔐</div><h4>M1 — Auth, Empresas, Usuários</h4></div>
+      <ul>
+        <li>Better Auth: sessão em DB revogável, cookie httpOnly (sem localStorage)</li>
+        <li>2FA obrigatório para ADMIN (TOTP + códigos de recuperação)</li>
+        <li>Convite por e-mail com aceite; último ADMIN protegido</li>
+        <li>Multi-empresa: seleção pós-login, papéis por empresa</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--emerald-dim)">📦</div><h4>M2 — Estoque</h4></div>
+      <ul>
+        <li>Livro imutável (<span class="mono">stock_movements</span> append-only) + cache de saldo</li>
+        <li>Custo médio móvel; FIFO previsto; 11 tipos de movimento</li>
+        <li>Reserva em CONFIRMADO, consumo em FATURADO, liberação em cancelar/expirar</li>
+        <li>Inventário com contagem → diferença → ajuste; cron de expiração de reservas</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--sky-dim)">🧾</div><h4>M3 — Vendas</h4></div>
+      <ul>
+        <li>Estados DRAFT → CONFIRMED → BILLED → CANCELLED/RETURNED</li>
+        <li>Desconto por papel (vendedor/gerente) validado no servidor</li>
+        <li>Leitor USB de código de barras; kits explodem componentes</li>
+        <li>Cupom não-fiscal 80mm com CSS de impressão dedicado</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--amber-dim)">💳</div><h4>PDV + Caixa</h4></div>
+      <ul>
+        <li>Frente de caixa com atalhos F1–F9 e carrinho em tempo real</li>
+        <li>PIX EMV + QR Code (CRC-16/CCITT), troco automático</li>
+        <li>Caixa: abertura, suprimento, sangria, fechamento com contagem e diferença</li>
+        <li>Venda → faturamento → pagamento à vista em <b>uma transação</b></li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--orange-dim)">💰</div><h4>M4 — Financeiro</h4></div>
+      <ul>
+        <li>Contas a receber/pagar geradas no faturamento e na compra</li>
+        <li>Baixa parcial com validação <span class="mono">paid_amount ≤ amount</span></li>
+        <li>OVERDUE automático por cron diário; status recalculado a cada baixa</li>
+        <li>Parcelas de 1–12×; juros/desconto informativos na baixa</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--violet-dim)">📈</div><h4>M5 — Relatórios e Dashboard</h4></div>
+      <ul>
+        <li>Relatórios de Estoque/Vendas/Compras/Financeiro com filtros e paginação</li>
+        <li>Export CSV (BOM + ponto-e-vírgula + CRLF, moeda pt-BR)</li>
+        <li>Dashboard com KPIs, série diária, funil, top vendedores, próximos vencimentos</li>
+        <li>Gráficos em SVG/CSS puro (sem biblioteca externa)</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--indigo-dim)">🏢</div><h4>E3 — Unidades (Matriz/Filial/Posto)</h4></div>
+      <ul>
+        <li>Hierarquia de 3 níveis com validação de ciclo</li>
+        <li>Acesso por usuário: posto A não vê posto B; herança para filhas</li>
+        <li>Estoque-alvo por unidade (mínimo/máximo/reposição)</li>
+        <li>Responsável por unidade; default amplo p/ usuários sem marcação</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--sky-dim)">🔁</div><h4>E4/E6 — Transferências</h4></div>
+      <ul>
+        <li>Fluxo simples (saída+entrada imediata) e workflow DRAFT→SENT→RECEIVED</li>
+        <li>Modo de baixa escolhível: ao enviar ou ao receber</li>
+        <li>Cancelamento com estorno na origem (livro imutável)</li>
+        <li>Custo e lote preservados entre a saída e a entrada</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--amber-dim)">⏳</div><h4>E5 — Lotes, Validade e Rastreio</h4></div>
+      <ul>
+        <li>FEFO automático (First Expired, First Out) com bloqueio de vencido</li>
+        <li>Alertas de validade com janelas configuráveis (ex.: 7/30/90 dias)</li>
+        <li>Rastreio completo: lote → movimentações → venda → cliente</li>
+        <li>Etiqueta térmica 50×30mm para impressão</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--emerald-dim)">🧩</div><h4>E2 — Núcleo SaaS (Módulos)</h4></div>
+      <ul>
+        <li>13 módulos contratáveis por empresa (preset por segmento)</li>
+        <li>Assinatura TRIAL/ACTIVE/PAST_DUE/CANCELED/SUSPENDED</li>
+        <li>Versão de contrato aceita por empresa; planos → módulos</li>
+        <li>Menu dinâmico + gate de servidor por módulo</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--rose-dim)">🛡️</div><h4>Segurança e Auditoria</h4></div>
+      <ul>
+        <li>RLS com <span class="mono">SET LOCAL app.current_tenant_id</span> em toda transação</li>
+        <li>tenant_id sempre da sessão — nunca do cliente (fail-closed)</li>
+        <li><span class="mono">audit()</span> em toda mutação sensível (tabela append-only)</li>
+        <li>RBAC no servidor (403), validação Zod em toda entrada, sem vazar stack trace</li>
+      </ul>
+    </div>
+    <div class="feat-card glow-card">
+      <div class="fh"><div class="fi" style="background:var(--sky-dim)">⚙️</div><h4>Infra e Qualidade</h4></div>
+      <ul>
+        <li>Next.js + Drizzle + PostgreSQL (Neon) na Vercel</li>
+        <li>449 testes: unit (regras puras) + integração (Postgres real com RLS)</li>
+        <li>GitHub Action: typecheck + testes + migrations no push</li>
+        <li>Crons diários (overdue, reservas); backup automático para Google Drive</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="arch">
+  <div class="section-head">
+    <div class="kicker">Sob o capô</div>
+    <h2>Arquitetura multi-tenant</h2>
+    <p>Shared schema + <span class="mono">tenant_id</span> + RLS em toda tabela de negócio. Cada Server Action passa por sessão → empresa ativa → permissão → transação com contexto de tenant.</p>
+  </div>
+  <div class="arch">
+    <div class="arch-card"><div class="an">01 · FRAME</div><h4>Next.js App Router</h4><p>Server Components por padrão; Server Actions para mutações; Route Handlers só para auth, exports CSV e crons.</p></div>
+    <div class="arch-card"><div class="an">02 · AUTH</div><h4>Better Auth</h4><p>Sessões em banco revogáveis, 2FA TOTP, convites, organizações = tenants. Cookie httpOnly, nada em localStorage.</p></div>
+    <div class="arch-card"><div class="an">03 · DATA</div><h4>Drizzle + PostgreSQL</h4><p>40+ tabelas, migrations SQL versionadas, dinheiro em centavos (integer) e quantidades com 3 decimais.</p></div>
+    <div class="arch-card"><div class="an">04 · RLS</div><h4>Isolamento total</h4><p>Policy <span class="mono">tenant_id = current_setting('app.current_tenant_id')</span> com FORCE — fora da transação a query devolve 0 linhas.</p></div>
+    <div class="arch-card"><div class="an">05 · RBAC</div><h4>Permissões</h4><p>22 permissões × 6 papéis; <span class="mono">requirePermission()</span> no início de toda ação sensível.</p></div>
+    <div class="arch-card"><div class="an">06 · AUDIT</div><h4>Trilha de auditoria</h4><p>Append-only com antes/depois sanitizado (remove senha/token), IP e user-agent em cada evento.</p></div>
+    <div class="arch-card"><div class="an">07 · MONEY</div><h4>Dinheiro e quantidades</h4><p>Centavos inteiros no servidor; exibição pt-BR. Proibido float em valor financeiro.</p></div>
+    <div class="arch-card"><div class="an">08 · OPS</div><h4>Deploy e crons</h4><p>Vercel + Neon + GitHub Actions (typecheck, testes, migrations). Crons: OVERDUE e expiração de reservas.</p></div>
+  </div>
+</section>
+
+<section class="section" id="quality">
+  <div class="section-head">
+    <div class="kicker">Prova de qualidade</div>
+    <h2>449 testes automatizados, verde</h2>
+    <p>TDD de verdade: regra de negócio nasce com teste (RED → GREEN). Integração roda em Postgres real, com casos obrigatórios de RLS entre empresas.</p>
+  </div>
+  <div class="grid g4">
+    <div class="card kpi glow-card"><h3>Testes unit</h3><div class="v">321</div><div class="d up">19 suítes · regras puras</div></div>
+    <div class="card kpi glow-card"><h3>Testes integração</h3><div class="v">128</div><div class="d up">14 suítes · Postgres real</div></div>
+    <div class="card kpi glow-card"><h3>Typecheck</h3><div class="v">0 erros</div><div class="d up">TypeScript strict</div></div>
+    <div class="card kpi glow-card"><h3>Build</h3><div class="v">30 rotas</div><div class="d up">Next.js production</div></div>
+  </div>
+  <div class="card" style="margin-top:13px">
+    <h3>Casos críticos cobertos</h3>
+    <div class="pill-row">
+      <span class="badge b-emerald">✓ Empresa A não lê dados de Empresa B (RLS)</span>
+      <span class="badge b-emerald">✓ Entrada 10 + saída 3 = saldo 7</span>
+      <span class="badge b-emerald">✓ Estoque 100, reserva 20 → disponível 80</span>
+      <span class="badge b-emerald">✓ Venda faturada baixa estoque e gera conta a receber</span>
+      <span class="badge b-emerald">✓ Vendedor não executa operação de admin (403)</span>
+      <span class="badge b-emerald">✓ Venda usa lote FEFO</span>
+      <span class="badge b-emerald">✓ Lote vencido bloqueado pela configuração</span>
+      <span class="badge b-emerald">✓ Custo médio: 10@R$10 + 10@R$12 → R$11</span>
+      <span class="badge b-emerald">✓ Posto A não vê Posto B</span>
+      <span class="badge b-emerald">✓ Transferência preserva custo e lote</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <b>L Gestão</b> — Estoque, vendas e financeiro multi-empresa · mockup interativo<br>
+  Stack: Next.js · TypeScript · Drizzle ORM · PostgreSQL (Neon) · Better Auth · Tailwind CSS · Vercel
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="pixModal">
+  <div class="modal">
+    <button class="x" onclick="closePix()">✕</button>
+    <h3>PIX · pagamento à vista</h3>
+    <p class="mini">Chave: pagamentos@empresademo.com.br · cidade: Campinas</p>
+    <div class="qr"><canvas id="qrCanvas" width="150" height="150"></canvas></div>
+    <div style="text-align:center;font-family:var(--font-mono);font-size:11px;color:var(--txt2);word-break:break-all">
+      00020126580014BR.GOV.BCB.PIX0136pagamentos@empresademo.com.br5204000053039865406
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="closePix();toast('PIX confirmado — venda faturada.')">Simular confirmação</button>
+  </div>
+</div>
+
+<script>
+const root = document.documentElement;
+const saved = localStorage.getItem("mock-theme");
+if (saved) root.className = saved;
+document.getElementById("themeBtn").onclick = () => {
+  root.className = root.className === "dark" ? "light" : "dark";
+  localStorage.setItem("mock-theme", root.className);
+  toast("Tema " + (root.className === "dark" ? "escuro" : "claro") + " ativado.");
+};
+
+const urls = {
+  painel:"/painel", dashboard:"/dashboard", estoque:"/estoque", produtos:"/estoque/produtos",
+  unidades:"/unidades", lotes:"/lotes", transferencias:"/transferencias", vendas:"/vendas",
+  pdv:"/pdv", compras:"/compras", financeiro:"/financeiro", relatorios:"/relatorios",
+  modulos:"/admin/modulos", equipe:"/equipe"
+};
+function go(name){
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.screen === name));
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  const el = document.getElementById("s-" + name);
+  if (el) el.classList.add("active");
+  document.getElementById("frameUrl").textContent = "https://l-gestao.vercel.app" + (urls[name] || "/painel");
+}
+document.querySelectorAll(".nav-item").forEach(n => n.onclick = () => go(n.dataset.screen));
+
+document.querySelectorAll(".tabs").forEach(group => {
+  const wrap = group.parentElement;
+  group.querySelectorAll(".tab").forEach(tab => {
+    tab.onclick = () => {
+      group.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      wrap.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      const target = tab.dataset.tab || tab.dataset.panel;
+      const panel = wrap.querySelector('[data-panel="' + target + '"]');
+      if (panel) panel.classList.add("active");
+    };
+  });
+});
+
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+(function(){
+  const wrap = document.getElementById("dashBars");
+  const vals = [8,0,12,6,20,0,4,18,26,9,14,32,11,7,22,16,28,10,5,19,24,13,30,17,9,21,15,35,27,42];
+  wrap.innerHTML = vals.map((v,i) =>
+    '<div class="bar" style="height:' + Math.max(v,4) + 'px"><span>Dia ' + (i+1) + ' · R$ ' + (v*2.4).toFixed(2) + '</span></div>'
+  ).join("");
+})();
+
+const products = [
+  { sku:"CAF-500", name:"Café Torrado 500g", price:24.90 },
+  { sku:"DIP-500", name:"Dipirona 500mg", price:12.50 },
+  { sku:"AGU-500", name:"Água Mineral 500ml", price:2.50 },
+  { sku:"SHP-350", name:"Shampoo 350ml", price:15.90 },
+  { sku:"SAB-90",  name:"Sabonete 90g", price:3.20 },
+  { sku:"PAN-500", name:"Pão de Forma 500g", price:8.90 },
+  { sku:"QUE-200", name:"Queijo Mussarela 200g", price:12.40 },
+  { sku:"SUC-1L",  name:"Suco de Laranja 1L", price:9.50 }
+];
+const cart = [];
+function brl(n){ return "R$ " + n.toFixed(2).replace(".", ","); }
+function renderGrid(filter){
+  const g = document.getElementById("pdvGrid");
+  const list = products.filter(p => !filter || (p.name + p.sku).toLowerCase().includes(filter.toLowerCase()));
+  g.innerHTML = list.map(p =>
+    '<div class="card" style="cursor:pointer;padding:12px" onclick="addItem(\'' + p.sku + '\')">' +
+      '<div class="mini t-mono">' + p.sku + '</div>' +
+      '<div style="font-size:11.8px;font-weight:700;line-height:1.3;margin:5px 0 8px;min-height:31px">' + p.name + '</div>' +
+      '<div style="font-family:var(--font-display);font-weight:700;font-size:13.5px;color:var(--indigo2)">' + brl(p.price) + '</div>' +
+    '</div>'
+  ).join("");
+}
+function addItem(sku){
+  const p = products.find(x => x.sku === sku);
+  const line = cart.find(c => c.sku === sku);
+  if (line) line.qty += 1; else cart.push({ sku:p.sku, name:p.name, price:p.price, qty:1 });
+  renderCart();
+  toast(p.name + " adicionado.");
+}
+function removeLast(){
+  if (!cart.length){ toast("Carrinho vazio."); return; }
+  cart.pop();
+  renderCart();
+  toast("Último item removido.");
+}
+function renderCart(){
+  const el = document.getElementById("pdvCart");
+  if (!cart.length){
+    el.innerHTML = '<div class="mini" style="padding:16px 0;text-align:center">Carrinho vazio — clique em um produto</div>';
+    document.getElementById("pdvTotal").textContent = brl(0);
+    return;
+  }
+  el.innerHTML = cart.map(c =>
+    '<div class="cart-item"><b class="t-mono" style="width:32px">' + c.qty + 'x</b>' +
+    '<div style="flex:1;font-size:12.2px;font-weight:600">' + c.name + '</div>' +
+    '<div class="t-mono" style="font-size:12px">' + brl(c.qty * c.price) + '</div></div>'
+  ).join("");
+  const total = cart.reduce((s,c) => s + c.qty * c.price, 0);
+  document.getElementById("pdvTotal").textContent = brl(total);
+  calcTroco();
+}
+function calcTroco(){
+  const total = cart.reduce((s,c) => s + c.qty * c.price, 0);
+  const recv = parseFloat((document.getElementById("pdvRecv").value || "0").replace(",", ".")) || 0;
+  document.getElementById("pdvTroco").value = brl(Math.max(recv - total, 0)).replace("R$ ", "");
+}
+function finishSale(){
+  if (!cart.length){ toast("Adicione itens antes de finalizar."); return; }
+  const total = cart.reduce((s,c) => s + c.qty * c.price, 0);
+  toast("Venda " + brl(total) + " faturada · caixa atualizado.");
+  cart.length = 0;
+  document.getElementById("pdvRecv").value = "";
+  renderCart();
+}
+function focusSearch(){
+  go("pdv");
+  setTimeout(() => document.getElementById("pdvSearch").focus(), 120);
+}
+document.getElementById("pdvSearch").addEventListener("input", e => renderGrid(e.target.value));
+document.getElementById("payGrid").addEventListener("click", e => {
+  const b = e.target.closest(".pay-btn");
+  if (!b) return;
+  document.querySelectorAll(".pay-btn").forEach(x => x.classList.remove("sel"));
+  b.classList.add("sel");
+  if (b.dataset.pay === "PIX") openPix();
+});
+renderGrid();
+renderCart();
+
+let trState = 0;
+function trPaint(){
+  const steps = document.querySelectorAll("#trSteps .step");
+  steps.forEach((s, i) => {
+    s.classList.remove("done", "current");
+    if (i < trState) s.classList.add("done");
+    else if (i === trState) s.classList.add("current");
+  });
+  const badge = document.getElementById("trBadge");
+  const row = document.getElementById("trRowBadge");
+  const actions = document.getElementById("trActions");
+  const hint = document.getElementById("trHint");
+  const map = [
+    { txt:"RASCUNHO", cls:"b-amber", hint:"💡 Ao enviar, o estoque da origem já dá baixa (material em trânsito fica fora dos dois lados). Clique para simular." },
+    { txt:"ENVIADA", cls:"b-sky", hint:"🚚 Material em trânsito: origem 24 → 14. Clique em Confirmar recebimento para entrar no destino." },
+    { txt:"RECEBIDA", cls:"b-emerald", hint:"✅ Concluída: destino 24 → 34. Dois movimentos no livro com o mesmo transfer_id." }
+  ];
+  if (trState === 3){
+    badge.textContent = "CANCELADA"; badge.className = "badge b-rose";
+    row.innerHTML = '<span class="badge b-rose">CANCELADA</span>';
+    actions.innerHTML = '<button class="btn btn-ghost btn-sm" onclick="trReset()">↺ Reiniciar simulação</button>';
+    hint.textContent = "❌ Cancelada com estorno na origem (movimento novo — livro imutável).";
+    return;
+  }
+  const m = map[trState];
+  badge.textContent = m.txt; badge.className = "badge " + m.cls;
+  row.innerHTML = '<span class="badge ' + m.cls + '">' + m.txt + '</span>';
+  hint.textContent = m.hint;
+  if (trState === 0){
+    actions.innerHTML = '<button class="btn btn-primary btn-sm" onclick="trSend()">📦 Enviar</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="trCancel()">Cancelar</button>';
+  } else if (trState === 1){
+    actions.innerHTML = '<button class="btn btn-success btn-sm" onclick="trReceive()">✅ Confirmar recebimento</button>' +
+      '<button class="btn btn-danger btn-sm" onclick="trCancel()">Cancelar</button>';
+  } else {
+    actions.innerHTML = '<button class="btn btn-ghost btn-sm" onclick="trReset()">↺ Reiniciar simulação</button>';
+  }
+}
+function trSend(){ trState = 1; trPaint(); toast("TRANSFERENCIA_SAIDA lançada — origem 24 → 14."); }
+function trReceive(){ trState = 2; trPaint(); toast("TRANSFERENCIA_ENTRADA lançada — destino 24 → 34."); }
+function trCancel(){ trState = 3; trPaint(); toast("Transferência cancelada (estorno lançado)."); }
+function trReset(){ trState = 0; trPaint(); toast("Simulação reiniciada."); }
+trPaint();
+
+const modules = [
+  { k:"ESTOQUE", i:"📦", c:"var(--emerald-dim)" },
+  { k:"VENDAS", i:"🧾", c:"var(--sky-dim)" },
+  { k:"PDV", i:"💳", c:"var(--amber-dim)" },
+  { k:"COMPRAS", i:"🛒", c:"var(--orange-dim)" },
+  { k:"FINANCEIRO", i:"💰", c:"var(--emerald-dim)" },
+  { k:"INVENTARIO", i:"📋", c:"var(--violet-dim)" },
+  { k:"LOTES_VALIDADE", i:"⏳", c:"var(--amber-dim)" },
+  { k:"MATRIZ_POSTOS", i:"🏢", c:"var(--indigo-dim)" },
+  { k:"TRANSFERENCIAS", i:"🔁", c:"var(--sky-dim)" },
+  { k:"REPOSICAO", i:"🔄", c:"var(--violet-dim)" },
+  { k:"AUDITORIA", i:"🛡️", c:"var(--rose-dim)" },
+  { k:"INDICADORES", i:"📊", c:"var(--indigo-dim)" },
+  { k:"RELATORIOS", i:"📈", c:"var(--sky-dim)" }
+];
+function renderMods(){
+  document.getElementById("modGrid").innerHTML = modules.map((m,i) =>
+    '<div class="mod-card glow-card">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:9px">' +
+        '<div class="mod-ico" style="background:' + m.c + '">' + m.i + '</div>' +
+        '<div class="switch on" data-mod="' + i + '"></div>' +
+      '</div>' +
+      '<div><b style="font-family:var(--font-display);font-size:13px">' + m.k + '</b>' +
+      '<div class="mini" style="margin-top:3px">contratado · ativo</div></div>' +
+    '</div>'
+  ).join("");
+  document.querySelectorAll(".switch[data-mod]").forEach(sw => {
+    sw.onclick = () => {
+      sw.classList.toggle("on");
+      const m = modules[+sw.dataset.mod];
+      const on = sw.classList.contains("on");
+      sw.parentElement.parentElement.querySelector(".mini").textContent = on ? "contratado · ativo" : "contratado · inativo";
+      toast("Módulo " + m.k + (on ? " ativado" : " desativado") + " · audit() registrado.");
+      const active = document.querySelectorAll(".switch.on").length;
+      document.getElementById("modCount").textContent = "Assinatura: TRIAL · " + active + "/13 módulos";
+    };
+  });
+}
+renderMods();
+
+function openPix(){
+  document.getElementById("pixModal").classList.add("open");
+  const c = document.getElementById("qrCanvas");
+  const ctx = c.getContext("2d");
+  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,150,150);
+  ctx.fillStyle = "#000";
+  let seed = 7;
+  for (let y = 0; y < 25; y++) for (let x = 0; x < 25; x++) {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    if ((seed >> 16) % 3 === 0) ctx.fillRect(x*6, y*6, 6, 6);
+  }
+  const finder = (fx, fy) => {
+    ctx.fillStyle = "#000"; ctx.fillRect(fx, fy, 42, 42);
+    ctx.fillStyle = "#fff"; ctx.fillRect(fx+6, fy+6, 30, 30);
+    ctx.fillStyle = "#000"; ctx.fillRect(fx+12, fy+12, 18, 18);
+  };
+  finder(6,6); finder(102,6); finder(6,102);
+}
+function closePix(){ document.getElementById("pixModal").classList.remove("open"); }
+document.getElementById("pixModal").addEventListener("click", e => { if (e.target.id === "pixModal") closePix(); });
+</script>
+</body>
+</html>

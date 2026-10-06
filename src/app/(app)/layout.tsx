@@ -78,8 +78,7 @@ export default async function AppLayout({
             <ThemeToggle />
             <UserMenu name={session.user.name} email={session.user.email} />
           </div>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
+        </header>        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );

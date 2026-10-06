@@ -7,18 +7,60 @@
   color-scheme: light;
   --background: #f1f5f9;
   --foreground: #0f172a;
+  --app-line: #e2e8f0;
+  --app-line-strong: #cbd5e1;
+  --app-surface: #ffffff;
+  --app-surface-alt: #f8fafc;
+  --app-txt2: #475569;
+  --app-txt3: #94a3b8;
+  --indigo: #6366f1;
+  --indigo2: #818cf8;
+  --indigo-dim: rgba(99, 102, 241, 0.14);
+  --emerald: #059669;
+  --emerald-dim: rgba(5, 150, 105, 0.13);
+  --amber: #d97706;
+  --amber-dim: rgba(217, 119, 6, 0.13);
+  --rose: #e11d48;
+  --rose-dim: rgba(225, 29, 72, 0.12);
+  --sky: #0284c7;
+  --sky-dim: rgba(2, 132, 199, 0.12);
+  --violet: #7c3aed;
+  --violet-dim: rgba(124, 58, 237, 0.12);
+  --orange: #ea580c;
+  --orange-dim: rgba(234, 88, 12, 0.12);
+  --font-display: var(--font-display, "Sora"), sans-serif;
+  --font-body: var(--font-body, "Manrope"), sans-serif;
+  --font-mono: var(--font-mono, "JetBrains Mono"), ui-monospace, monospace;
 }
 
 html.dark {
   color-scheme: dark;
-  --background: #0b1220;
-  --foreground: #e6edf9;
+  --background: #070c17;
+  --foreground: #e2e8f0;
+  --app-line: #1e293b;
+  --app-line-strong: #263450;
+  --app-surface: #0f172a;
+  --app-surface-alt: #111c31;
+  --app-txt2: #94a3b8;
+  --app-txt3: #64748b;
+  --emerald: #34d399;
+  --emerald-dim: rgba(52, 211, 153, 0.13);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251, 191, 36, 0.13);
+  --rose: #fb7185;
+  --rose-dim: rgba(251, 113, 133, 0.13);
+  --sky: #38bdf8;
+  --sky-dim: rgba(56, 189, 248, 0.13);
+  --violet: #a78bfa;
+  --violet-dim: rgba(167, 139, 250, 0.13);
+  --orange: #fb923c;
+  --orange-dim: rgba(251, 146, 60, 0.13);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -27,15 +69,8 @@ body {
    (bg-white, slate-*, tintados) para a paleta escura.
    Regras fora de @layer vencem as utilidades do Tailwind.
    Em modo claro (sem .dark) vale o padrão do Tailwind.
+   Tokens de cor vivem em :root / html.dark (acima).
    ============================================================ */
-.dark {
-  /* --- superfícies --- */
-  --app-line: #223352;
-  --app-line-strong: #33486e;
-  --app-surface: #111c31;
-  --app-surface-alt: #152038;
-}
-
 .dark .bg-white {
   background-color: var(--app-surface);
 }
@@ -66,9 +101,9 @@ body {
 /* wrapper da área logada: fundo com atmosfera (glows) */
 .dark .min-h-screen.bg-slate-100 {
   background:
-    radial-gradient(1100px 520px at 92% -8%, rgba(99, 102, 241, 0.16), transparent 62%),
-    radial-gradient(860px 440px at -8% 104%, rgba(56, 189, 248, 0.1), transparent 58%),
-    radial-gradient(700px 380px at 45% 45%, rgba(139, 92, 246, 0.06), transparent 70%),
+    radial-gradient(1100px 520px at 12% -8%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(900px 500px at 92% 12%, rgba(56, 189, 248, 0.1), transparent 55%),
+    radial-gradient(800px 600px at 50% 110%, rgba(167, 139, 250, 0.1), transparent 60%),
     var(--background);
 }
 
@@ -86,20 +121,22 @@ body {
   border-color: #1c2b47;
 }
 
-/* --- texto --- */
+/* --- texto (tokens do mockup: txt / txt2 / txt3) --- */
 .dark .text-slate-900,
 .dark .text-slate-800 {
-  color: #e6edf9;
+  color: var(--foreground);
 }
-.dark .text-slate-700,
+.dark .text-slate-700 {
+  color: #cbd5e1;
+}
 .dark .text-slate-600 {
-  color: #b9c5de;
+  color: var(--app-txt2);
 }
 .dark .text-slate-500 {
-  color: #8b9ab8;
+  color: var(--app-txt2);
 }
 .dark .text-slate-400 {
-  color: #7d8db1;
+  color: var(--app-txt3);
 }
 .dark .hover\:text-slate-700:hover {
   color: #dbe4f5;
@@ -167,26 +204,26 @@ body {
   color: #7dd3fc;
 }
 
-/* --- chips tintados (fundos pastéis → tons profundos) --- */
+/* --- chips tintados (dim do mockup sobre o painel) --- */
 .dark .bg-indigo-50 {
-  background-color: #1c2150;
+  background-color: var(--indigo-dim);
 }
 .dark .bg-indigo-100,
 .dark .hover\:bg-indigo-100:hover {
-  background-color: #262c66;
+  background-color: rgba(99, 102, 241, 0.2);
 }
 .dark .bg-emerald-50 {
-  background-color: #0c2f26;
+  background-color: var(--emerald-dim);
 }
 .dark .bg-emerald-100 {
-  background-color: #0f3d31;
+  background-color: rgba(52, 211, 153, 0.2);
 }
 .dark .bg-amber-50 {
-  background-color: #322708;
+  background-color: var(--amber-dim);
 }
 .dark .bg-rose-50,
 .dark .hover\:bg-rose-50:hover {
-  background-color: #3c1226;
+  background-color: var(--rose-dim);
 }
 .dark .bg-sky-50 {
   background-color: #0c2a3e;
@@ -244,6 +281,221 @@ body {
 /* botão primário ganha brilho no hover */
 .dark .bg-indigo-600:hover {
   box-shadow: 0 10px 26px -10px rgba(99, 102, 241, 0.65);
+}
+
+/* ============================================================
+   IDENTIDADE VISUAL (mockup docs/mockup-l-gestao.html)
+   ============================================================ */
+
+/* tipografia: Sora em títulos e números, mono em códigos */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+}
+.font-mono,
+code {
+  font-family: var(--font-mono);
+}
+
+/* botão primário: gradiente + sombra do mockup */
+button.bg-indigo-600,
+a.bg-indigo-600 {
+  background-image: linear-gradient(135deg, #6366f1, #4f46e5);
+  box-shadow: 0 12px 30px -12px rgba(99, 102, 241, 0.9);
+}
+button.bg-indigo-600:hover,
+a.bg-indigo-600:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 40px -12px rgba(99, 102, 241, 1);
+}
+button.bg-emerald-600,
+a.bg-emerald-600 {
+  background-image: linear-gradient(135deg, #34d399, #059669);
+}
+
+/* cartões ganham borda luminosa no hover (como o mockup) */
+.glow-card {
+  position: relative;
+}
+.glow-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.5),
+    transparent 45%,
+    rgba(56, 189, 248, 0.35)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: 0.25s;
+  pointer-events: none;
+}
+.glow-card:hover::before {
+  opacity: 1;
+}
+
+/* KPI: números grandes (Sora) como no mockup */
+.kpi .v {
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.kpi .d {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* tabelas: cabeçalho em caixa alta com tracking (mockup) */
+table th {
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: 10.2px;
+  font-weight: 800;
+}
+
+/* badges tintados do mockup (usados pelos status-badge) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+}
+.b-emerald {
+  background: var(--emerald-dim);
+  color: var(--emerald);
+}
+.b-rose {
+  background: var(--rose-dim);
+  color: var(--rose);
+}
+.b-amber {
+  background: var(--amber-dim);
+  color: var(--amber);
+}
+.b-sky {
+  background: var(--sky-dim);
+  color: var(--sky);
+}
+.b-indigo {
+  background: var(--indigo-dim);
+  color: var(--indigo2);
+}
+.b-violet {
+  background: var(--violet-dim);
+  color: var(--violet);
+}
+.b-orange {
+  background: var(--orange-dim);
+  color: var(--orange);
+}
+.b-slate {
+  background: var(--app-line);
+  color: var(--app-txt2);
+}
+
+/* workflow de transferências (passos) */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 13px 0 20px;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+}
+.step .ball {
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--app-line);
+  color: var(--app-txt3);
+  border: 2px solid var(--app-line-strong);
+  transition: 0.3s;
+  flex-shrink: 0;
+}
+.step.done .ball {
+  background: var(--emerald);
+  color: #042015;
+  border-color: var(--emerald);
+}
+.step.current .ball {
+  background: var(--indigo);
+  color: #fff;
+  border-color: var(--indigo2);
+  box-shadow: 0 0 0 5px var(--indigo-dim);
+}
+.step .lbl {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--app-txt3);
+}
+.step.done .lbl,
+.step.current .lbl {
+  color: var(--foreground);
+}
+.step .line {
+  flex: 1;
+  height: 2.5px;
+  background: var(--app-line-strong);
+  margin: 0 9px;
+  border-radius: 9px;
+}
+.step.done .line {
+  background: var(--emerald);
+}
+
+/* atalhos do PDV (teclas F1–F9) */
+.keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.key {
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: var(--background);
+  border: 1px solid var(--app-line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--app-txt3);
+  cursor: pointer;
+  transition: 0.15s;
+}
+.key:hover {
+  border-color: var(--indigo);
+  color: var(--indigo2);
+  background: var(--indigo-dim);
+}
+.key b {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  color: var(--app-txt2);
+  margin-top: 2px;
 }
 
 /* sidebar: trilho com gradiente sutil e brilho na borda */
