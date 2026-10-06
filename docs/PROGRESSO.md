@@ -200,7 +200,8 @@ Decisões do usuário: **escopo completo** (lotes + rastreio + alertas + etiquet
   (entra direto).
 
 ### ▶ PRÓXIMO PASSO
-1. Commit do visual + mockup (com autorização) + deploy.
+1. ~~Commit do visual + mockup + deploy~~ — **FEITO**: commit `79e9e84` em
+   `origin/main` (deploy Vercel pelo push; `/login` 200 em produção).
 2. Replicar o usuário GERENTE em produção (opcional) ou reativar 2FA do
    admin com novo QR.
 3. Sprint 5 — E7 Matriz→Postos + E8 Reposição (requisições entre unidades).
